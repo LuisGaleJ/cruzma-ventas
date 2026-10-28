@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${c.numero})}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div class="encabezado no-imprimir">
+            <div><h1 th:text="${c.numero}">F001</h1>
+                <p>SUNAT: <span class="estado" th:classappend="'estado-' + ${c.estadoSunat}" th:text="${c.estadoSunat}">estado</span></p></div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/ventas/{id}(id=${c.venta.id})}" class="btn btn-outline-secondary">Volver a la venta</a>
+                <button type="button" class="btn btn-principal" onclick="window.print()">Descargar PDF</button>
+            </div>
+        </div>
+        <article class="documento">
+            <div class="cabecera">
+                <div class="emisor">
+                    <strong th:text="${empresaNombre}">Grupo Cruzma</strong>
+                    <div>Carpintería metálica y acero inoxidable</div>
+                    <div th:text="${empresaDireccion}">Piura, Perú</div>
+                </div>
+                <div class="recuadro">
+                    <div th:text="'RUC ' + ${empresaRuc}">RUC</div>
+                    <div class="tipo" th:text="${c.tipo.name() == 'FACTURA'} ? 'FACTURA ELECTRÓNICA' : (${c.tipo.name() == 'BOLETA'} ? 'BOLETA DE VENTA ELECTRÓNICA' : 'NOTA DE CRÉDITO ELECTRÓNICA')">FACTURA</div>
+                    <div class="numero" th:text="${c.numero}">F001-00000001</div>
+                </div>
+            </div>
+            <p class="mb-1"><strong>Cliente:</strong> <span th:text="${c.venta.cliente.razonSocial}"></span></p>
+            <p class="mb-1"><strong th:text="${c.venta.cliente.tipoDoc} + ':'">DOC:</strong> <span th:text="${c.venta.cliente.numDoc}"></span></p>
+            <p class="mb-3"><strong>Fecha de emisión:</strong> <span th:text="${#temporals.format(c.fechaEmision, 'dd/MM/yyyy HH:mm')}"></span>
+                · <strong>Moneda:</strong> Soles</p>
+            <table class="table">
+                <thead><tr><th>Cant.</th><th>Descripción</th><th class="num">P. unit.</th><th class="num">Importe</th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${c.venta.detalles}">
+                    <td th:text="${d.cantidad}">1</td><td th:text="${d.producto.descripcion}">desc</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(d.precio, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">0</td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="totales">
+                <tr><td>Op. gravada</td><td class="num" th:text="${#numbers.formatDecimal(c.subtotal, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
+                <tr><td>IGV 18 %</td><td class="num" th:text="${#numbers.formatDecimal(c.igv, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
+                <tr class="fw-semibold"><td>Importe total S/</td><td class="num" th:text="${#numbers.formatDecimal(c.total, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
+            </table>
+            <p class="pie">Representación impresa del comprobante electrónico. Código de constancia (CDR):
+                <span th:text="${c.hashCdr} ?: 'pendiente'">hash</span>.
+                En la versión final se agrega el código QR exigido por SUNAT.</p>
+        </article>
+    </main>
+</div>
+</body>
+</html>

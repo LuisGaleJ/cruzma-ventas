@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Nueva cotización')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado">
+            <div><h1>Nueva cotización</h1>
+                <p th:text="'Válida por ' + ${diasValidez} + ' días. Ajusta el precio de un ítem para aplicar un descuento.'">Válida</p></div>
+        </div>
+        <form th:action="@{/cotizaciones}" method="post" id="formCotizacion">
+            <section class="hoja">
+                <h2>Cliente</h2>
+                <div class="d-flex gap-2 align-items-end flex-wrap">
+                    <div class="flex-grow-1">
+                        <label class="form-label" for="clienteId">Cliente</label>
+                        <select id="clienteId" name="clienteId" class="form-select" required>
+                            <option value="">Elige un cliente</option>
+                            <option th:each="c : ${clientes}" th:value="${c.id}" th:selected="${c.id == clienteId}"
+                                    th:text="${c.razonSocial} + ' · ' + ${c.tipoDoc} + ' ' + ${c.numDoc}">cliente</option>
+                        </select>
+                    </div>
+                    <a th:href="@{/clientes}" class="btn btn-outline-secondary">Registrar cliente nuevo</a>
+                </div>
+            </section>
+
+            <section class="hoja">
+                <h2>Productos y servicios</h2>
+                <div class="table-responsive">
+                <table class="table" id="items">
+                    <thead><tr><th style="min-width:260px">Producto o servicio</th><th style="width:90px">Cant.</th><th>Medidas</th><th style="width:140px">Precio S/</th><th class="num" style="width:120px">Subtotal</th><th></th></tr></thead>
+                    <tbody>
+                    <tr class="item">
+                        <td><select name="productoId" class="form-select producto" aria-label="Producto">
+                            <option value="">Elige</option>
+                            <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario}"
+                                    th:text="${p.descripcion} + ' (' + ${p.unidad} + ')'">producto</option>
+                        </select></td>
+                        <td><input name="cantidad" type="number" min="1" value="1" class="form-control cantidad" aria-label="Cantidad"></td>
+                        <td><input name="medidas" class="form-control" placeholder="ej. 3.20 m x 0.90 m" aria-label="Medidas"></td>
+                        <td><input name="precio" type="number" min="0" step="0.01" class="form-control precio" aria-label="Precio"></td>
+                        <td class="num subtotal">0.00</td>
+                        <td><button type="button" class="btn btn-sm btn-outline-secondary quitar" aria-label="Quitar ítem">Quitar</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+                <button type="button" class="btn btn-outline-secondary" id="agregar">Agregar ítem</button>
+                <table class="ms-auto mt-3" style="width:260px">
+                    <tr><td>Op. gravada</td><td class="num" id="gravada">0.00</td></tr>
+                    <tr><td>IGV 18 %</td><td class="num" id="igv">0.00</td></tr>
+                    <tr class="fw-semibold"><td>Total S/</td><td class="num" id="total">0.00</td></tr>
+                </table>
+            </section>
+            <button class="btn btn-principal">Guardar cotización</button>
+            <a th:href="@{/cotizaciones}" class="btn btn-link">Cancelar</a>
+        </form>
+    </main>
+</div>
+<script>
+    // Calcula subtotales y totales en pantalla; el servidor vuelve a calcularlos al guardar.
+    const tabla = document.querySelector('#items tbody');
+    const plantilla = tabla.querySelector('.item').cloneNode(true);
+    const fmt = n => n.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    function recalcular() {
+        let total = 0;
+        tabla.querySelectorAll('.item').forEach(fila => {
+            const cant = parseFloat(fila.querySelector('.cantidad').value) || 0;
+            const precio = parseFloat(fila.querySelector('.precio').value) || 0;
+            const sub = cant * precio;
+            fila.querySelector('.subtotal').textContent = fmt(sub);
+            total += sub;
+        });
+        const gravada = total / 1.18;
+        document.getElementById('gravada').textContent = fmt(gravada);
+        document.getElementById('igv').textContent = fmt(total - gravada);
+        document.getElementById('total').textContent = fmt(total);
+    }
+
+    tabla.addEventListener('change', e => {
+        if (e.target.classList.contains('producto')) {
+            const op = e.target.selectedOptions[0];
+            e.target.closest('.item').querySelector('.precio').value = op.dataset.precio || '';
+        }
+        recalcular();
+    });
+    tabla.addEventListener('input', recalcular);
+    tabla.addEventListener('click', e => {
+        if (e.target.classList.contains('quitar') && tabla.querySelectorAll('.item').length > 1) {
+            e.target.closest('.item').remove();
+            recalcular();
+        }
+    });
+    document.getElementById('agregar').addEventListener('click', () => {
+        tabla.appendChild(plantilla.cloneNode(true));
+    });
+</script>
+</body>
+</html>

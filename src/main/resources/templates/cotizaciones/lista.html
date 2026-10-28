@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cotizaciones')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado">
+            <div><h1>Cotizaciones</h1><p>Cada cotización es válida por 15 días.</p></div>
+            <a th:href="@{/cotizaciones/nueva}" class="btn btn-principal">Nueva cotización</a>
+        </div>
+        <section class="hoja">
+            <p th:if="${#lists.isEmpty(cotizaciones)}" class="text-secondary m-0">No hay cotizaciones. Crea la primera con el botón Nueva cotización.</p>
+            <table th:unless="${#lists.isEmpty(cotizaciones)}" class="table">
+                <thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Vence</th><th class="num">Total S/</th><th>Estado</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${cotizaciones}">
+                    <td><a th:href="@{/cotizaciones/{id}(id=${c.id})}" th:text="${c.numero}">num</a></td>
+                    <td th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy')}">fecha</td>
+                    <td th:text="${c.cliente.razonSocial}">cliente</td>
+                    <td th:text="${#temporals.format(c.fechaVencimiento, 'dd/MM/yyyy')}">vence</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(c.total, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td><span class="estado" th:classappend="'estado-' + ${c.estado}" th:text="${c.estado}">estado</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

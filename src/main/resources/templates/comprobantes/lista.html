@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Comprobantes')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado"><div><h1>Comprobantes</h1><p>Boletas, facturas y notas de crédito enviadas al OSE.</p></div></div>
+        <section class="hoja">
+            <p th:if="${#lists.isEmpty(comprobantes)}" class="text-secondary m-0">Aún no se emiten comprobantes. Se emiten desde el detalle de cada venta.</p>
+            <table th:unless="${#lists.isEmpty(comprobantes)}" class="table">
+                <thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th class="num">IGV S/</th><th class="num">Total S/</th><th>SUNAT</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${comprobantes}">
+                    <td><a th:href="@{/comprobantes/{id}(id=${c.id})}" th:text="${c.numero}">F001</a></td>
+                    <td th:text="${#temporals.format(c.fechaEmision, 'dd/MM/yyyy HH:mm')}">fecha</td>
+                    <td th:text="${c.venta.cliente.razonSocial}">cliente</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(c.igv, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(c.total, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td><span class="estado" th:classappend="'estado-' + ${c.estadoSunat}" th:text="${c.estadoSunat}">estado</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

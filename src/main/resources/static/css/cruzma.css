@@ -1,0 +1,94 @@
+/* Cruzma Ventas: interfaz de oficina de taller.
+   Base de acero frío y un solo acento azul pavonado para acciones principales. */
+:root {
+  --acero-900: #1f272e;
+  --acero-700: #3a4650;
+  --acero-500: #6b7882;
+  --acero-200: #d5dbe0;
+  --acero-100: #eef1f3;
+  --blanco: #ffffff;
+  --pavonado: #1d5b79;
+  --pavonado-oscuro: #154459;
+  --ok: #2f7d4f;
+  --pendiente: #a76a12;
+  --error: #b3372d;
+  --radio: 6px;
+  --bs-body-font-family: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+/* Estructura */
+.app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+.menu { background: var(--acero-900); color: var(--acero-200); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+.menu .marca { color: var(--blanco); font-weight: 600; font-size: 18px; line-height: 1.2; margin: 0 8px 24px; }
+.menu .marca small { display: block; color: var(--acero-500); font-weight: 400; font-size: 13px; }
+.menu a { color: var(--acero-200); text-decoration: none; padding: 9px 12px; border-radius: var(--radio); }
+.menu a:hover { background: var(--acero-700); color: var(--blanco); }
+.menu a.activo { background: var(--pavonado); color: var(--blanco); }
+.menu .usuario { margin-top: auto; padding: 12px; border-top: 1px solid var(--acero-700); font-size: 13px; }
+.menu .usuario button { background: none; border: 0; color: var(--acero-200); padding: 0; text-decoration: underline; }
+.contenido { padding: 32px 40px; max-width: 1180px; width: 100%; }
+.encabezado { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+.encabezado h1 { font-size: 26px; font-weight: 600; margin: 0; }
+.encabezado p { color: var(--acero-500); margin: 4px 0 0; }
+
+.hoja { background: var(--blanco); border: 1px solid var(--acero-200); border-radius: var(--radio); padding: 24px; margin-bottom: 24px; }
+.hoja h2 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
+
+/* Botones: el azul solo para la acción principal */
+.btn-principal { background: var(--pavonado); border-color: var(--pavonado); color: var(--blanco); }
+.btn-principal:hover, .btn-principal:focus { background: var(--pavonado-oscuro); border-color: var(--pavonado-oscuro); color: var(--blanco); }
+.btn:focus-visible, .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(29, 91, 121, .35); border-color: var(--pavonado); }
+
+/* Tablas */
+.table { margin: 0; }
+.table thead th { color: var(--acero-500); font-weight: 500; font-size: 13px; border-bottom: 1px solid var(--acero-200); }
+.table td { vertical-align: middle; }
+
+/* Estados (RNF04: etiquetas con color y texto) */
+.estado { display: inline-block; font-size: 12.5px; font-weight: 500; padding: 2px 9px; border-radius: 999px; border: 1px solid; }
+.estado-ACEPTADO, .estado-PAGADA, .estado-APROBADA { color: var(--ok); border-color: var(--ok); }
+.estado-PENDIENTE { color: var(--pendiente); border-color: var(--pendiente); }
+.estado-RECHAZADO, .estado-RECHAZADA, .estado-ANULADO, .estado-ANULADA, .estado-VENCIDA { color: var(--error); border-color: var(--error); }
+
+/* Panel: el saldo por cobrar es la cifra que más importa a la gerencia */
+.indicadores { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.indicador { background: var(--blanco); border: 1px solid var(--acero-200); border-radius: var(--radio); padding: 18px 20px; }
+.indicador span { color: var(--acero-500); font-size: 13px; }
+.indicador strong { display: block; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.indicador.saldo { background: var(--acero-900); border-color: var(--acero-900); color: var(--blanco); }
+.indicador.saldo span { color: var(--acero-200); }
+.indicador.saldo strong { font-size: 34px; }
+
+/* Documentos imprimibles: cotización y comprobante */
+.documento { background: var(--blanco); border: 1px solid var(--acero-200); padding: 40px; max-width: 820px; }
+.documento .cabecera { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--acero-900); padding-bottom: 16px; margin-bottom: 20px; }
+.documento .emisor strong { font-size: 20px; }
+.documento .recuadro { border: 2px solid var(--acero-900); padding: 12px 20px; text-align: center; min-width: 230px; }
+.documento .recuadro .tipo { font-weight: 600; font-size: 15px; }
+.documento .recuadro .numero { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.documento .totales { margin-left: auto; width: 280px; }
+.documento .totales td { padding: 4px 0; }
+.documento .pie { color: var(--acero-500); font-size: 12.5px; margin-top: 28px; }
+
+.login { min-height: 100vh; display: grid; place-items: center; background: var(--acero-900); }
+.login form { background: var(--blanco); border-radius: var(--radio); padding: 36px; width: min(380px, 92vw); }
+.login h1 { font-size: 22px; font-weight: 600; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .menu { flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .menu .marca, .menu .usuario { display: none; }
+  .contenido { padding: 20px 16px; }
+  .indicadores { grid-template-columns: 1fr 1fr; }
+  .encabezado { flex-direction: column; align-items: flex-start; }
+}
+
+@media print {
+  .menu, .no-imprimir, .alert { display: none !important; }
+  .app { display: block; }
+  body, .contenido { background: #fff; padding: 0; }
+  .documento { border: 0; padding: 0; }
+}

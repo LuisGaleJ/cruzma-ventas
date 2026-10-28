@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Reportes')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado">
+            <div><h1>Reportes</h1><p th:text="'Del ' + ${#temporals.format(desde, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(hasta, 'dd/MM/yyyy')}">periodo</p></div>
+            <form class="d-flex gap-2 align-items-end no-imprimir" th:action="@{/reportes}" method="get">
+                <div><label class="form-label" for="desde">Desde</label><input id="desde" type="date" name="desde" th:value="${desde}" class="form-control"></div>
+                <div><label class="form-label" for="hasta">Hasta</label><input id="hasta" type="date" name="hasta" th:value="${hasta}" class="form-control"></div>
+                <button class="btn btn-outline-secondary">Filtrar</button>
+            </form>
+        </div>
+
+        <section class="indicadores" style="grid-template-columns: 1fr 1fr 1fr" aria-label="Resumen del período">
+            <div class="indicador"><span>Total vendido</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}">0</strong></div>
+            <div class="indicador"><span>Número de ventas</span><strong th:text="${numeroVentas}">0</strong></div>
+            <div class="indicador"><span>Ticket promedio</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(ticketPromedio, 1, 'COMMA', 2, 'POINT')}">0</strong></div>
+        </section>
+
+        <div class="d-flex gap-2 mb-4 no-imprimir">
+            <a class="btn btn-principal" th:href="@{/reportes/exportar(formato='xlsx',desde=${desde},hasta=${hasta})}">Descargar Excel (.xlsx)</a>
+            <a class="btn btn-outline-secondary" th:href="@{/reportes/exportar(formato='csv',desde=${desde},hasta=${hasta})}">Descargar CSV</a>
+            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Descargar PDF</button>
+        </div>
+
+        <section class="hoja" sec:authorize="hasRole('ADMIN')">
+            <h2>R1 Ventas por día</h2>
+            <p th:if="${#lists.isEmpty(porDia)}" class="text-secondary m-0">No hay ventas en el período.</p>
+            <table th:unless="${#lists.isEmpty(porDia)}" class="table">
+                <thead><tr><th>Día</th><th class="num">Ventas</th><th class="num">Monto S/</th><th style="width:40%"></th></tr></thead>
+                <tbody>
+                <tr th:each="f : ${porDia}">
+                    <td th:text="${f.etiqueta}">día</td>
+                    <td class="num" th:text="${f.cantidad}">0</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(f.monto, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td><div th:style="'height:10px;background:var(--pavonado);border-radius:3px;width:' + ${f.porcentajeDe(total)} + '%'"></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="row g-4" sec:authorize="hasAnyRole('ADMIN','VENDEDOR')">
+            <div class="col-lg-6">
+                <section class="hoja">
+                    <h2>R2 Clientes que más compran</h2>
+                    <table class="table">
+                        <thead><tr><th>Cliente</th><th class="num">Ventas</th><th class="num">Monto S/</th></tr></thead>
+                        <tbody><tr th:each="f : ${porCliente}"><td th:text="${f.etiqueta}"></td><td class="num" th:text="${f.cantidad}"></td>
+                            <td class="num" th:text="${#numbers.formatDecimal(f.monto, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+                    </table>
+                </section>
+            </div>
+            <div class="col-lg-6">
+                <section class="hoja">
+                    <h2>R2 Productos más vendidos</h2>
+                    <table class="table">
+                        <thead><tr><th>Producto</th><th class="num">Unid.</th><th class="num">Monto S/</th></tr></thead>
+                        <tbody><tr th:each="f : ${porProducto}"><td th:text="${f.etiqueta}"></td><td class="num" th:text="${f.cantidad}"></td>
+                            <td class="num" th:text="${#numbers.formatDecimal(f.monto, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+
+        <section class="hoja" sec:authorize="hasAnyRole('ADMIN','CAJA')">
+            <h2>R3 Cuentas por cobrar</h2>
+            <p th:if="${#lists.isEmpty(porCobrar)}" class="text-secondary m-0">No hay saldos pendientes.</p>
+            <table th:unless="${#lists.isEmpty(porCobrar)}" class="table">
+                <thead><tr><th>Venta</th><th>Cliente</th><th>Fecha</th><th class="num">Días</th><th class="num">Saldo S/</th></tr></thead>
+                <tbody>
+                <tr th:each="v : ${porCobrar}">
+                    <td><a th:href="@{/ventas/{id}(id=${v.id})}" th:text="${v.id}">1</a></td>
+                    <td th:text="${v.cliente.razonSocial}"></td>
+                    <td th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy')}"></td>
+                    <td class="num" th:text="${v.diasDesdeVenta}">0</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(v.saldo, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

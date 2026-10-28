@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Venta ' + ${venta.id})}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado">
+            <div><h1 th:text="'Venta ' + ${venta.id}">Venta</h1>
+                <p><span th:text="${venta.cliente.razonSocial}">cliente</span>
+                    <span th:if="${venta.cotizacion != null}" th:text="'· desde ' + ${venta.cotizacion.numero}">desde</span>
+                    · <span class="estado" th:classappend="'estado-' + ${venta.estado}" th:text="${venta.estado}">estado</span></p></div>
+        </div>
+
+        <section class="indicadores" style="grid-template-columns: 1fr 1fr 1fr" aria-label="Montos de la venta">
+            <div class="indicador"><span>Total</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(venta.total, 1, 'COMMA', 2, 'POINT')}">0</strong></div>
+            <div class="indicador"><span>Pagado</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(venta.pagado, 1, 'COMMA', 2, 'POINT')}">0</strong></div>
+            <div class="indicador saldo"><span>Saldo</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(venta.saldo, 1, 'COMMA', 2, 'POINT')}">0</strong></div>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="hoja">
+                    <h2>Detalle</h2>
+                    <table class="table">
+                        <thead><tr><th>Cant.</th><th>Descripción</th><th class="num">P. unit.</th><th class="num">Importe</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${venta.detalles}">
+                            <td th:text="${d.cantidad}">1</td><td th:text="${d.producto.descripcion}">desc</td>
+                            <td class="num" th:text="${#numbers.formatDecimal(d.precio, 1, 'COMMA', 2, 'POINT')}">0</td>
+                            <td class="num" th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="hoja">
+                    <h2>Comprobantes</h2>
+                    <p th:if="${#lists.isEmpty(venta.comprobantes)}" class="text-secondary m-0">Todavía no se emitió comprobante para esta venta.</p>
+                    <table th:unless="${#lists.isEmpty(venta.comprobantes)}" class="table">
+                        <thead><tr><th>Número</th><th>Tipo</th><th class="num">Total S/</th><th>SUNAT</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="c : ${venta.comprobantes}">
+                            <td><a th:href="@{/comprobantes/{id}(id=${c.id})}" th:text="${c.numero}">F001</a></td>
+                            <td th:text="${c.tipo}">tipo</td>
+                            <td class="num" th:text="${#numbers.formatDecimal(c.total, 1, 'COMMA', 2, 'POINT')}">0</td>
+                            <td><span class="estado" th:classappend="'estado-' + ${c.estadoSunat}" th:text="${c.estadoSunat}">estado</span></td>
+                            <td class="text-end">
+                                <form sec:authorize="hasAnyRole('ADMIN','CAJA')"
+                                      th:if="${c.estadoSunat.name() == 'ACEPTADO' and c.tipo.name() != 'NOTA_CREDITO'}"
+                                      th:action="@{/comprobantes/{id}/anular(id=${c.id})}" method="post"
+                                      onsubmit="return confirm('Se emitirá una nota de crédito y la venta quedará anulada. ¿Continuar?')">
+                                    <input type="hidden" name="motivo" value="Anulación de la operación">
+                                    <button class="btn btn-sm btn-outline-danger">Anular</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+
+            <div class="col-lg-5" sec:authorize="hasAnyRole('ADMIN','CAJA')">
+                <form class="hoja" th:if="${venta.saldo.signum() > 0 and venta.estado.name() != 'ANULADA'}"
+                      th:action="@{/ventas/{id}/pagos(id=${venta.id})}" method="post">
+                    <h2>Registrar pago o adelanto</h2>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><label class="form-label" for="monto">Monto S/</label>
+                            <input id="monto" name="monto" type="number" step="0.01" min="0.01" th:max="${venta.saldo}" class="form-control" required></div>
+                        <div class="col-6"><label class="form-label" for="medio">Medio</label>
+                            <select id="medio" name="medio" class="form-select">
+                                <option th:each="m : ${medios}" th:value="${m}" th:text="${m}">medio</option>
+                            </select></div>
+                    </div>
+                    <button class="btn btn-outline-secondary">Registrar pago</button>
+                </form>
+
+                <form class="hoja" th:unless="${venta.tieneComprobanteVigente() or venta.estado.name() == 'ANULADA'}"
+                      th:action="@{/ventas/{id}/emitir(id=${venta.id})}" method="post">
+                    <h2>Emitir comprobante electrónico</h2>
+                    <p th:if="${#lists.isEmpty(venta.pagos)}" class="text-secondary">Registra al menos un adelanto para habilitar la emisión.</p>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="boleta" value="BOLETA"
+                                   th:checked="${venta.cliente.tipoDoc.name() == 'DNI'}">
+                            <label class="form-check-label" for="boleta">Boleta de venta</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="factura" value="FACTURA"
+                                   th:checked="${venta.cliente.tipoDoc.name() == 'RUC'}" th:disabled="${venta.cliente.tipoDoc.name() != 'RUC'}">
+                            <label class="form-check-label" for="factura">Factura (solo clientes con RUC)</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-principal" th:disabled="${#lists.isEmpty(venta.pagos)}">Emitir y enviar a SUNAT</button>
+                </form>
+
+                <section class="hoja">
+                    <h2>Pagos</h2>
+                    <p th:if="${#lists.isEmpty(venta.pagos)}" class="text-secondary m-0">Sin pagos registrados.</p>
+                    <table th:unless="${#lists.isEmpty(venta.pagos)}" class="table">
+                        <tbody>
+                        <tr th:each="p : ${venta.pagos}">
+                            <td th:text="${#temporals.format(p.fecha, 'dd/MM HH:mm')}">fecha</td>
+                            <td th:text="${p.medio}">medio</td>
+                            <td class="num" th:text="${#numbers.formatDecimal(p.monto, 1, 'COMMA', 2, 'POINT')}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

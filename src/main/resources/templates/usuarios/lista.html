@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Usuarios')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado"><div><h1>Usuarios</h1><p>Cada rol ve solo los módulos que necesita.</p></div></div>
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="hoja">
+                    <table class="table">
+                        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="u : ${usuarios}">
+                            <td th:text="${u.username}">user</td>
+                            <td th:text="${u.nombres}">nombre</td>
+                            <td th:text="${u.rol.nombre}">rol</td>
+                            <td th:text="${u.activo} ? 'Activo' : 'Desactivado'">estado</td>
+                            <td class="text-end">
+                                <form th:action="@{/usuarios/{id}/estado(id=${u.id})}" method="post">
+                                    <button class="btn btn-sm btn-outline-secondary" th:text="${u.activo} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+            <div class="col-lg-5">
+                <form class="hoja" th:action="@{/usuarios}" method="post">
+                    <h2>Nuevo usuario</h2>
+                    <div class="mb-3"><label class="form-label" for="u">Usuario</label>
+                        <input id="u" name="username" class="form-control" required pattern="[a-z0-9._]{4,30}" placeholder="ej. jperez"></div>
+                    <div class="mb-3"><label class="form-label" for="n">Nombres</label>
+                        <input id="n" name="nombres" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label" for="p">Contraseña</label>
+                        <input id="p" name="password" type="password" class="form-control" required minlength="8">
+                        <div class="form-text">Mínimo 8 caracteres. Se guarda cifrada.</div></div>
+                    <div class="mb-4"><label class="form-label" for="r">Rol</label>
+                        <select id="r" name="idRol" class="form-select">
+                            <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.nombre}">rol</option>
+                        </select></div>
+                    <button class="btn btn-principal">Crear usuario</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

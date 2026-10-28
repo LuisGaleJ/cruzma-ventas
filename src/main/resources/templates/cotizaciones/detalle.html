@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${cot.numero})}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado no-imprimir">
+            <div><h1 th:text="${cot.numero}">COT</h1>
+                <p>Estado: <span class="estado" th:classappend="'estado-' + ${cot.estado}" th:text="${cot.estado}">estado</span></p></div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Descargar PDF</button>
+                <form th:if="${cot.estado.name() == 'PENDIENTE'}" th:action="@{/cotizaciones/{id}/rechazar(id=${cot.id})}" method="post">
+                    <button class="btn btn-outline-secondary">Marcar como rechazada</button></form>
+                <form th:if="${cot.estado.name() == 'PENDIENTE'}" th:action="@{/cotizaciones/{id}/convertir(id=${cot.id})}" method="post">
+                    <button class="btn btn-principal">Convertir en venta</button></form>
+            </div>
+        </div>
+
+        <article class="documento">
+            <div class="cabecera">
+                <div class="emisor">
+                    <strong th:text="${empresaNombre}">Grupo Cruzma</strong>
+                    <div>Carpintería metálica y acero inoxidable</div>
+                    <div th:text="'RUC ' + ${empresaRuc} + ' · ' + ${empresaDireccion}">RUC</div>
+                </div>
+                <div class="recuadro">
+                    <div class="tipo">COTIZACIÓN</div>
+                    <div class="numero" th:text="${cot.numero}">COT</div>
+                </div>
+            </div>
+            <p class="mb-1"><strong>Cliente:</strong> <span th:text="${cot.cliente.razonSocial}">cliente</span></p>
+            <p class="mb-1"><strong th:text="${cot.cliente.tipoDoc} + ':'">DOC:</strong> <span th:text="${cot.cliente.numDoc}">num</span></p>
+            <p class="mb-3"><strong>Fecha:</strong> <span th:text="${#temporals.format(cot.fecha, 'dd/MM/yyyy')}"></span>
+                · <strong>Válida hasta:</strong> <span th:text="${#temporals.format(cot.fechaVencimiento, 'dd/MM/yyyy')}"></span></p>
+            <table class="table">
+                <thead><tr><th>Cant.</th><th>Descripción</th><th>Medidas</th><th class="num">P. unit.</th><th class="num">Importe</th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${cot.detalles}">
+                    <td th:text="${d.cantidad}">1</td>
+                    <td th:text="${d.producto.descripcion}">desc</td>
+                    <td th:text="${d.medidas}">med</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(d.precio, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">0</td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="totales">
+                <tr class="fw-semibold"><td>Total S/ (incluye IGV)</td><td class="num" th:text="${#numbers.formatDecimal(cot.total, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
+            </table>
+            <p class="pie">Forma de pago: 50 % de adelanto y saldo contra entrega. Precios sujetos a variación del acero después de la fecha de validez.
+                Atendido por <span th:text="${cot.usuario.nombres}">vendedor</span>.</p>
+        </article>
+    </main>
+</div>
+</body>
+</html>

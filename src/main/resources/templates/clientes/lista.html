@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Clientes')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado">
+            <div><h1>Clientes</h1><p>Busca por DNI, RUC o nombre.</p></div>
+            <form class="d-flex gap-2" th:action="@{/clientes}" method="get" role="search">
+                <input name="q" th:value="${q}" class="form-control" placeholder="DNI, RUC o nombre" aria-label="Buscar cliente">
+                <button class="btn btn-outline-secondary">Buscar</button>
+            </form>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="hoja">
+                    <p th:if="${#lists.isEmpty(clientes)}" class="text-secondary m-0">No se encontraron clientes. Regístralo con el formulario.</p>
+                    <table th:unless="${#lists.isEmpty(clientes)}" class="table">
+                        <thead><tr><th>Documento</th><th>Nombre o razón social</th><th>Teléfono</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="c : ${clientes}">
+                            <td th:text="${c.tipoDoc} + ' ' + ${c.numDoc}">doc</td>
+                            <td th:text="${c.razonSocial}">nombre</td>
+                            <td th:text="${c.telefono}">tel</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-secondary" th:href="@{/clientes(editar=${c.id})}">Editar</a>
+                                <a sec:authorize="hasAnyRole('ADMIN','VENDEDOR')" class="btn btn-sm btn-outline-secondary"
+                                   th:href="@{/cotizaciones/nueva(clienteId=${c.id})}">Cotizar</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+            <div class="col-lg-5">
+                <form class="hoja" th:action="@{/clientes/guardar}" th:object="${cliente}" method="post" novalidate>
+                    <h2 th:text="*{id} == null ? 'Nuevo cliente' : 'Editar cliente'">Nuevo cliente</h2>
+                    <input type="hidden" th:field="*{id}">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4"><label class="form-label" for="tipoDoc">Tipo</label>
+                            <select th:field="*{tipoDoc}" class="form-select">
+                                <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DNI</option>
+                            </select></div>
+                        <div class="col-8"><label class="form-label" for="numDoc">Número</label>
+                            <input th:field="*{numDoc}" class="form-control" inputmode="numeric" maxlength="11" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{numDoc}"></div></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label" for="razonSocial">Nombre o razón social</label>
+                        <input th:field="*{razonSocial}" class="form-control" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{razonSocial}"></div></div>
+                    <div class="mb-3"><label class="form-label" for="direccion">Dirección</label>
+                        <input th:field="*{direccion}" class="form-control"></div>
+                    <div class="row g-2 mb-4">
+                        <div class="col-5"><label class="form-label" for="telefono">Teléfono</label>
+                            <input th:field="*{telefono}" class="form-control"></div>
+                        <div class="col-7"><label class="form-label" for="email">Correo</label>
+                            <input th:field="*{email}" class="form-control" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{email}"></div></div>
+                    </div>
+                    <button class="btn btn-principal">Guardar cliente</button>
+                    <a th:if="*{id} != null" th:href="@{/clientes}" class="btn btn-link">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
