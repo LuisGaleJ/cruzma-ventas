@@ -1,0 +1,10 @@
+pe.cruzma.ventas
+pe.cruzma.ventas.config
+pe.cruzma.ventas.controller
+pe.cruzma.ventas.dto
+pe.cruzma.ventas.integration
+pe.cruzma.ventas.model
+pe.cruzma.ventas.repository
+pe.cruzma.ventas.service
+pe.cruzma.ventas.service.exportacion
+pe.cruzma.ventas.util
