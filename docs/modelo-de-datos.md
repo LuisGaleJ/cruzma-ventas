@@ -19,6 +19,15 @@
 | `pago` | `Pago` | Adelantos y pagos | `monto > 0`; `medio` ENUM |
 | `comprobante` | `Comprobante` | Facturas, boletas y notas de crédito | `serie + correlativo` únicos; `tipo` '01', '03', '07' |
 
+## Tablas de auditoría (v0.4.0)
+
+| Tabla | Contenido | Claves |
+|-------|-----------|--------|
+| `revinfo` | Una fila por transacción que cambió datos: fecha y usuario | `id_revision` |
+| `cliente_aud`, `producto_aud`, `usuario_aud`, `cotizacion_aud`, `venta_aud`, `pago_aud`, `comprobante_aud` | Versión de cada registro en cada revisión y tipo de operación (`revtype`) | PK (`id_...`, `rev`); FK `rev` → `revinfo` |
+
+Las genera Hibernate Envers; detalle en [auditoria-de-datos.md](auditoria-de-datos.md).
+
 ## Relaciones
 
 | Relación | Cardinalidad | En JPA |

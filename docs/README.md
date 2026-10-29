@@ -11,6 +11,7 @@ Complementa el [README del proyecto](../README.md), que explica cómo instalarlo
 | [Rutas y pantallas](rutas-y-pantallas.md) | Cada URL, su controlador, método, roles y requisito |
 | [Guía del desarrollador](guia-del-desarrollador.md) | Convenciones, cómo documentar, probar, agregar un módulo y conectar el OSE real |
 | [Cumplimiento del APF3](apf3-cumplimiento.md) | Principios MVC, DAO, SOLID y TDD, seguridad, librerías, Git y alcance |
+| [Auditoría de datos](auditoria-de-datos.md) | Historial de cambios en la base de datos con Hibernate Envers |
 | [Git y GitHub](git-y-github.md) | Cómo subir el proyecto y registrar los avances |
 | [Javadoc](javadoc/index.html) | Referencia generada de todas las clases y métodos |
 

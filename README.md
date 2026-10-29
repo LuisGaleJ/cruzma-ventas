@@ -16,10 +16,11 @@ El sistema une en un solo flujo lo que hoy se hace en Excel, en cuaderno y en el
 | Base de datos | H2 en memoria (demo) o MySQL 8 (perfil `mysql`) |
 | Facturación electrónica | Interfaz `ServicioFacturacionOSE`; en el prototipo, `OseSimuladoService` |
 | Librerías de apoyo | Google Guava, Apache POI, Apache Commons Lang y Text, Logback |
-| Pruebas | JUnit 5 y Mockito (24 pruebas) |
+| Auditoría de datos | Hibernate Envers (historial de cambios en tablas `*_aud`) |
+| Pruebas | JUnit 5, Mockito y Spring Boot Test (30 pruebas) |
 | Build | Maven |
 
-Composición del código: clases Java organizadas en 9 paquetes, 14 vistas HTML, 1 hoja CSS y 1 script SQL. El Java es más del 60 % del código fuente.
+Composición del código: clases Java organizadas en 9 paquetes, 15 vistas HTML, 1 hoja CSS y 2 scripts SQL. El Java es más del 60 % del código fuente.
 
 ## Cómo ejecutarlo
 
@@ -87,6 +88,7 @@ Flujo de una petición: `Controller` recibe el formulario → `Service` aplica l
 | P7 Venta y comprobante | `/ventas/{id}`, `/ventas/{id}/pagos`, `/ventas/{id}/emitir` | GET/POST | Pagos y emisión: ADMIN, CAJA | RF08, RF09, RF11 |
 | Comprobantes | `/comprobantes`, `/comprobantes/{id}`, `/comprobantes/{id}/anular` | GET/POST | Anular: ADMIN, CAJA | RF09, RF10 |
 | P8 Reportes | `/reportes`, `/reportes/exportar?formato=xlsx\|csv` | GET | Secciones según rol | RF12, RF13, RF14 |
+| P9 Historial de cambios | `/auditoria?entidad=&id=` | GET | ADMIN | Auditoría de datos |
 
 ## Reglas de negocio implementadas
 
@@ -112,6 +114,7 @@ Flujo de una petición: `Controller` recibe el formulario → `Service` aplica l
 | Usuarios desactivados no ingresan | `UsuarioDetailsService` |
 | Credenciales del OSE fuera del código | `OSE_URL`, `OSE_TOKEN` |
 | Usuario de BD con mínimo privilegio | `db/schema.sql` (`cruzma_app`: SELECT, INSERT, UPDATE) |
+| Historial de cambios en la BD (quién, cuándo, qué) | Hibernate Envers: `@Audited`, `revinfo`, `*_aud`, pantalla `/auditoria` |
 
 ## Integración con SUNAT
 
@@ -126,8 +129,9 @@ elegido (por ejemplo Nubefact) con el XML UBL 2.1, sin cambiar controladores ni 
 mvn test
 ```
 
-24 pruebas en 6 clases: reglas del dominio, servicios de cotización y comprobantes (con Mockito),
-bloqueo de login, tratamiento seguro de datos y exportación a Excel y CSV.
+30 pruebas en 9 clases: reglas del dominio, servicios de cotización y comprobantes (con Mockito),
+bloqueo de login, tratamiento seguro de datos, exportación a Excel y CSV, y auditoría de datos
+(incluida una prueba de integración con Spring Boot y H2 que verifica el historial de Envers).
 
 ## Librerías de apoyo (APF3)
 
@@ -147,6 +151,7 @@ bloqueo de login, tratamiento seguro de datos y exportación a Excel y CSV.
 ## Documentación
 
 - **APF3**: [`docs/apf3-cumplimiento.md`](docs/apf3-cumplimiento.md) explica cómo el proyecto cumple cada criterio de la rúbrica.
+- **Auditoría de datos**: [`docs/auditoria-de-datos.md`](docs/auditoria-de-datos.md).
 - **Git y GitHub**: [`docs/git-y-github.md`](docs/git-y-github.md).
 - **Cambios por versión**: [`CHANGELOG.md`](CHANGELOG.md).
 

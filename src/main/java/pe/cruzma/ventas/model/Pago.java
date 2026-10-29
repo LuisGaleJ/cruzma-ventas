@@ -1,6 +1,7 @@
 package pe.cruzma.ventas.model;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  * @since 0.1.0
  */
 @Entity
+@Audited
 @Table(name = "pago")
 public class Pago {
     @Id

@@ -42,7 +42,7 @@ public final class Auditoria {
     }
 
     /** {@return nombre del usuario autenticado, o {@code "sistema"} si no hay sesión} */
-    static String usuarioActual() {
+    public static String usuarioActual() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth == null ? "sistema" : auth.getName();
     }

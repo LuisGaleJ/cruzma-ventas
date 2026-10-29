@@ -1,6 +1,9 @@
 package pe.cruzma.ventas.model;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 /**
  * Persona que usa el sistema (administrador, vendedor o caja).
@@ -13,6 +16,7 @@ import jakarta.persistence.*;
  * @since 0.1.0
  */
 @Entity
+@Audited
 @Table(name = "usuario")
 public class Usuario {
     @Id
@@ -24,6 +28,7 @@ public class Usuario {
     private String username;
 
     /** Contraseña cifrada con BCrypt (RNF01). Nunca se guarda en texto plano. */
+    @NotAudited
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
@@ -33,6 +38,7 @@ public class Usuario {
     @Column(nullable = false)
     private boolean activo = true;
 
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_rol")
     private Rol rol;

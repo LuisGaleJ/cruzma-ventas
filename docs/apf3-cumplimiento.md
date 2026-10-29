@@ -59,6 +59,7 @@ La lista completa está en `docs/guia-del-desarrollador.md`.
 | Inyección de fórmulas al exportar | Textos con `= + - @` se exportan como texto | `DatosSeguros`, exportadores |
 | Datos personales en los logs | DNI/RUC enmascarados (`4587****`) | `DatosSeguros.enmascararDocumento` |
 | Trazabilidad | Log de auditoría de login, usuarios, ventas, comprobantes y exportaciones | `Auditoria`, `logs/auditoria.log` |
+| Cambios no rastreables en los datos | Historial en BD de quién creó o modificó cada registro, cuándo y qué valores cambiaron (Hibernate Envers); la app no puede borrarlo | `@Audited`, `revinfo`, `*_aud`, pantalla `/auditoria` |
 | Errores que revelan el código | Sin trazas de error al usuario | `server.error.include-stacktrace=never` |
 | Credenciales en el código | Variables de entorno `OSE_TOKEN`, `DB_PASSWORD` | `application*.properties` |
 
@@ -98,7 +99,7 @@ Repositorio: `https://github.com/[usuario]/cruzma-ventas` *(completar con el enl
 | RF13 Cuentas por cobrar | P2 Panel y P8 Reportes | Implementado |
 | RF14 Exportar a PDF y Excel | P8 Reportes | Implementado: .xlsx (POI), CSV y vista imprimible |
 
-Los 14 requisitos funcionales del SRS tienen pantalla funcionando.
+Los 14 requisitos funcionales del SRS tienen pantalla funcionando. Además, **P9 Historial de cambios** (`/auditoria`, ADMIN) muestra el control de cambios de la base de datos; ver [auditoria-de-datos.md](auditoria-de-datos.md).
 
 ## 5. Producto final
 
