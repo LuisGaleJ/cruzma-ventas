@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Historial de cambios')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragments/layout :: menu}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <div class="encabezado"><div><h1>Historial de cambios</h1>
+            <p>Quién creó o modificó cada registro, cuándo y qué valores cambiaron.</p></div></div>
+
+        <form class="hoja filtros-auditoria" th:action="@{/auditoria}" method="get">
+            <div><label class="form-label" for="entidad">Registro</label>
+                <select id="entidad" name="entidad" class="form-select">
+                    <option value="">Todos</option>
+                    <option th:each="e : ${entidades}" th:value="${e}" th:text="${e}"
+                            th:selected="${e == entidad}">Producto</option>
+                </select></div>
+            <div><label class="form-label" for="id">Código interno (id)</label>
+                <input id="id" name="id" type="number" min="1" class="form-control" th:value="${id}" placeholder="Todos"></div>
+            <div><button class="btn btn-principal">Filtrar</button>
+                <a class="btn btn-outline-secondary" th:href="@{/auditoria}">Limpiar</a></div>
+        </form>
+
+        <section class="hoja">
+            <p th:if="${#lists.isEmpty(cambios)}" class="text-muted m-0">No hay cambios registrados con ese filtro.</p>
+            <table class="table" th:unless="${#lists.isEmpty(cambios)}">
+                <thead><tr><th>Rev.</th><th>Fecha y hora</th><th>Usuario</th><th>Registro</th><th>Operación</th><th>Detalle del cambio</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${cambios}">
+                    <td class="num" th:text="${c.revision}">12</td>
+                    <td class="num" th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy HH:mm:ss')}">01/10/2026 10:15:00</td>
+                    <td th:text="${c.usuario}">admin</td>
+                    <td><a th:href="@{/auditoria(entidad=${c.entidad},id=${c.idRegistro})}"
+                           th:text="${c.entidad} + ' #' + ${c.idRegistro}">Producto #3</a>
+                        <div class="text-muted small" th:text="${c.titulo}">P-001 Puerta</div></td>
+                    <td><span class="operacion" th:classappend="'op-' + ${c.operacion}" th:text="${c.operacion}">Modificación</span></td>
+                    <td><ul class="cambios"><li th:each="d : ${c.detalles}" th:text="${d}">Precio: 10.00 → 12.00</li></ul></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package pe.cruzma.ventas.model;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  * @since 0.1.0
  */
 @Entity
+@Audited
 @Table(name = "comprobante", uniqueConstraints = @UniqueConstraint(columnNames = {"serie", "correlativo"}))
 public class Comprobante {
     @Id
@@ -28,6 +30,7 @@ public class Comprobante {
     @JoinColumn(name = "id_venta")
     private Venta venta;
 
+    @Convert(converter = TipoComprobanteConverter.class)
     @Column(nullable = false, length = 2)
     private TipoComprobante tipo;
 

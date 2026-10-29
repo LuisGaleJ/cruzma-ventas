@@ -1,6 +1,7 @@
 package pe.cruzma.ventas.model;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ import jakarta.validation.constraints.Pattern;
  * @since 0.1.0
  */
 @Entity
+@Audited
 @Table(name = "cliente")
 public class Cliente {
     @Id

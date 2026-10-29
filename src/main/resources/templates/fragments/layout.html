@@ -23,6 +23,8 @@
     <a th:href="@{/reportes}" th:classappend="${#strings.startsWith(uri, '/reportes')} ? 'activo'">Reportes</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/usuarios}"
        th:classappend="${#strings.startsWith(uri, '/usuarios')} ? 'activo'">Usuarios</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/auditoria}"
+       th:classappend="${#strings.startsWith(uri, '/auditoria')} ? 'activo'">Historial de cambios</a>
     <div class="usuario">
         <div sec:authentication="name">usuario</div>
         <form th:action="@{/logout}" method="post"><button type="submit">Cerrar sesión</button></form>

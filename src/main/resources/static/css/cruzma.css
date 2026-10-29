@@ -92,3 +92,12 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
   body, .contenido { background: #fff; padding: 0; }
   .documento { border: 0; padding: 0; }
 }
+
+/* Historial de cambios (auditoría de datos) */
+.filtros-auditoria { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.filtros-auditoria > div { min-width: 200px; }
+.operacion { display: inline-block; font-size: 12.5px; font-weight: 500; padding: 2px 9px; border-radius: 999px; border: 1px solid; }
+.op-Creación { color: var(--ok); border-color: var(--ok); }
+.op-Modificación { color: var(--pendiente); border-color: var(--pendiente); }
+.op-Eliminación { color: var(--error); border-color: var(--error); }
+.cambios { margin: 0; padding-left: 18px; font-size: 13.5px; }

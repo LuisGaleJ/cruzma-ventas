@@ -1,6 +1,8 @@
 package pe.cruzma.ventas.model;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +20,7 @@ import java.util.List;
  * @since 0.1.0
  */
 @Entity
+@Audited
 @Table(name = "venta")
 public class Venta {
     @Id
@@ -51,6 +54,7 @@ public class Venta {
     @JoinColumn(name = "id_cotizacion", unique = true)
     private Cotizacion cotizacion;
 
+    @NotAudited
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleVenta> detalles = new ArrayList<>();
 

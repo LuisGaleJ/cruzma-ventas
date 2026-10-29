@@ -2,6 +2,21 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versionado semántico.
 
+## [0.4.0] – APF3, auditoría de datos
+
+### Agregado
+- Control de cambios en la base de datos con **Hibernate Envers**: `@Audited` en Cliente, Producto, Usuario, Cotización, Venta, Pago y Comprobante.
+- Tabla `revinfo` (revisión, fecha, usuario) y tablas `*_aud` con la versión de cada registro; `password_hash` no se audita.
+- `RevisionUsuarioListener` guarda el usuario de la sesión en cada revisión.
+- Pantalla **P9 Historial de cambios** (`/auditoria`, solo ADMIN) con filtros y detalle "campo: anterior → nuevo".
+- Script `db/migracion-002-auditoria.sql` para bases MySQL existentes; `db/schema.sql` incluye las tablas nuevas.
+- 6 pruebas nuevas (30 en total), entre ellas una prueba de integración con Spring Boot y H2.
+
+## [0.3.1] – Conexión a MySQL
+
+### Agregado
+- Perfil `mysql` que lee la contraseña de la variable de entorno `DB_PASSWORD` y usa el usuario `cruzma_app`.
+
 ## [0.3.0] – APF3 (semana 12)
 
 ### Agregado
