@@ -12,7 +12,7 @@ El sistema une en un solo flujo lo que hoy se hace en Excel, en cuaderno y en el
 |------|------------|
 | Lenguaje | Java 17 |
 | Framework | Spring Boot 3.3 (Web, Security, Data JPA, Validation) |
-| Vistas | Thymeleaf + Bootstrap 5.3 + CSS propio (`static/css/cruzma.css`) |
+| Vistas | Thymeleaf + Bootstrap 5.3 + DataTables 2.1 (tablas con búsqueda, orden y paginación) + CSS propio (`static/css/cruzma.css`) |
 | Base de datos | H2 en memoria (demo) o MySQL 8 (perfil `mysql`) |
 | Facturación electrónica | Interfaz `ServicioFacturacionOSE`; en el prototipo, `OseSimuladoService` |
 | Librerías de apoyo | Google Guava, Apache POI, Apache Commons Lang y Text, Logback |

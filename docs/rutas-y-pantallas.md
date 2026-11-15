@@ -9,6 +9,7 @@
 | GET | `/` | `PanelController.panel` | `panel` | Autenticado | RF12, RF13 |
 | GET | `/usuarios` | `UsuarioController.listar` | `usuarios/lista` | ADMIN | RF02 |
 | POST | `/usuarios` | `UsuarioController.crear` | redirección | ADMIN | RF02 |
+| POST | `/usuarios/{id}` | `UsuarioController.actualizar` (nombres, rol, contraseña opcional) | redirección | ADMIN | RF02 |
 | POST | `/usuarios/{id}/estado` | `UsuarioController.cambiarEstado` | redirección | ADMIN | RF02 |
 | GET | `/auditoria?entidad=&id=` | `AuditoriaController.historial` | `auditoria/historial` | ADMIN | Auditoría de datos |
 | GET | `/clientes?q=&editar=` | `ClienteController.listar` | `clientes/lista` | Autenticado | RF03 |

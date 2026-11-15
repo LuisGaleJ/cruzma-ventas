@@ -104,3 +104,12 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
 
 /* Formularios en ventana emergente: marca de campo obligatorio */
 .obligatorio { color: var(--bs-danger); }
+
+/* DataTables: controles alineados con el estilo del sistema */
+div.dt-container { font-size: .95rem; }
+div.dt-container .dt-search input { min-width: 240px; }
+div.dt-container .page-item.active .page-link { background: var(--pavonado); border-color: var(--pavonado); }
+div.dt-container .page-link { color: var(--pavonado); }
+
+/* Usuarios: botones de acción en una sola línea */
+.acciones-usuario form { display: inline; }

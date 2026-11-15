@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.cruzma.ventas.service.UsuarioService;
 
-/** P3 Gestión de usuarios (RF02). Solo administrador. */
+/** P3 Gestión de usuarios (RF02): alta y edición en ventana emergente. Solo administrador. */
 @Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {
@@ -48,8 +48,32 @@ public class UsuarioController {
     public String crear(@RequestParam String username, @RequestParam String nombres,
                         @RequestParam String password, @RequestParam Long idRol, RedirectAttributes ra) {
         try {
-            service.crear(username.trim().toLowerCase(), nombres.trim(), password, idRol);
+            service.crear(username.trim().toLowerCase(), nombres, password, idRol);
             ra.addFlashAttribute("ok", "Usuario " + username + " creado");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/usuarios";
+    }
+
+    /**
+     * POST {@code /usuarios/{id}}: edita nombres, rol y, opcionalmente, la contraseña.
+     *
+     * @param id       id del usuario
+     * @param nombres  nombre completo
+     * @param idRol    rol asignado
+     * @param password contraseña nueva; vacía para no cambiarla
+     * @param actual   usuario que hace el cambio
+     * @param ra       mensajes para la siguiente vista
+     * @return redirección a la lista
+     */
+    @PostMapping("/{id}")
+    public String actualizar(@PathVariable Long id, @RequestParam String nombres, @RequestParam Long idRol,
+                             @RequestParam(required = false) String password,
+                             @AuthenticationPrincipal UserDetails actual, RedirectAttributes ra) {
+        try {
+            var u = service.actualizar(id, nombres, idRol, password, actual.getUsername());
+            ra.addFlashAttribute("ok", "Usuario " + u.getUsername() + " actualizado");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

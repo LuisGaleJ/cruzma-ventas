@@ -6,47 +6,119 @@
     <nav th:replace="~{fragments/layout :: menu}"></nav>
     <main class="contenido">
         <div th:replace="~{fragments/layout :: mensajes}"></div>
-        <div class="encabezado"><div><h1>Usuarios</h1><p>Cada rol ve solo los módulos que necesita.</p></div></div>
-        <div class="row g-4">
-            <div class="col-lg-7">
-                <section class="hoja">
-                    <table class="table">
-                        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
-                        <tbody>
-                        <tr th:each="u : ${usuarios}">
-                            <td th:text="${u.username}">user</td>
-                            <td th:text="${u.nombres}">nombre</td>
-                            <td th:text="${u.rol.nombre}">rol</td>
-                            <td th:text="${u.activo} ? 'Activo' : 'Desactivado'">estado</td>
-                            <td class="text-end">
-                                <form th:action="@{/usuarios/{id}/estado(id=${u.id})}" method="post">
-                                    <button class="btn btn-sm btn-outline-secondary" th:text="${u.activo} ? 'Desactivar' : 'Activar'">Desactivar</button>
-                                </form>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </div>
-            <div class="col-lg-5">
-                <form class="hoja" th:action="@{/usuarios}" method="post">
-                    <h2>Nuevo usuario</h2>
-                    <div class="mb-3"><label class="form-label" for="u">Usuario</label>
-                        <input id="u" name="username" class="form-control" required pattern="[a-z0-9._]{4,30}" placeholder="ej. jperez"></div>
-                    <div class="mb-3"><label class="form-label" for="n">Nombres</label>
-                        <input id="n" name="nombres" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label" for="p">Contraseña</label>
-                        <input id="p" name="password" type="password" class="form-control" required minlength="8">
-                        <div class="form-text">Mínimo 8 caracteres. Se guarda cifrada.</div></div>
-                    <div class="mb-4"><label class="form-label" for="r">Rol</label>
-                        <select id="r" name="idRol" class="form-select">
-                            <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.nombre}">rol</option>
-                        </select></div>
-                    <button class="btn btn-principal">Crear usuario</button>
-                </form>
-            </div>
+        <div class="encabezado">
+            <div><h1>Usuarios</h1><p>Cada rol ve solo los módulos que necesita.</p></div>
+            <button type="button" class="btn btn-principal" id="btnNuevoUsuario">Nuevo usuario</button>
         </div>
+
+        <section class="hoja">
+            <table class="table" id="tablaUsuarios">
+                <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th class="sin-orden"></th></tr></thead>
+                <tbody>
+                <tr th:each="u : ${usuarios}">
+                    <td th:text="${u.username}">user</td>
+                    <td th:text="${u.nombres}">nombre</td>
+                    <td th:text="${u.rol.nombre}">rol</td>
+                    <td><span class="estado" th:classappend="${u.activo} ? 'estado-ACEPTADO' : 'estado-ANULADO'"
+                              th:text="${u.activo} ? 'Activo' : 'Desactivado'">estado</span></td>
+                    <td class="text-end text-nowrap acciones-usuario">
+                        <!-- Los datos viajan en atributos data-*; el script los copia al formulario de la ventana -->
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-editar-usuario"
+                                th:data-id="${u.id}" th:data-username="${u.username}"
+                                th:data-nombres="${u.nombres}" th:data-id-rol="${u.rol.id}">Editar</button>
+                        <form th:action="@{/usuarios/{id}/estado(id=${u.id})}" method="post">
+                            <button class="btn btn-sm btn-outline-secondary" th:text="${u.activo} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 </div>
+
+<!-- Ventana emergente para crear o editar un usuario -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="tituloModalUsuario" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <!-- La acción cambia: /usuarios para crear, /usuarios/{id} para editar (el token CSRF se conserva) -->
+        <form class="modal-content" id="formUsuario" th:action="@{/usuarios}" th:data-crear="@{/usuarios}"
+              th:data-editar="@{/usuarios/}" method="post" autocomplete="off">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tituloModalUsuario">Nuevo usuario</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label" for="u">Usuario <span class="obligatorio">*</span></label>
+                    <input id="u" name="username" class="form-control" required pattern="[a-z0-9._]{4,30}"
+                           placeholder="ej. jperez" autocomplete="off" aria-describedby="ayudaUsuario">
+                    <div class="form-text" id="ayudaUsuario">De 4 a 30 caracteres: minúsculas, números, punto o guion bajo.</div></div>
+                <div class="mb-3"><label class="form-label" for="n">Nombres <span class="obligatorio">*</span></label>
+                    <input id="n" name="nombres" class="form-control" required maxlength="100"></div>
+                <div class="mb-3"><label class="form-label" for="p">Contraseña <span class="obligatorio" id="marcaClave">*</span></label>
+                    <input id="p" name="password" type="password" class="form-control" minlength="8"
+                           autocomplete="new-password" aria-describedby="ayudaClave">
+                    <div class="form-text" id="ayudaClave">Mínimo 8 caracteres. Se guarda cifrada.</div></div>
+                <div><label class="form-label" for="r">Rol <span class="obligatorio">*</span></label>
+                    <select id="r" name="idRol" class="form-select">
+                        <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.nombre}">rol</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-principal" id="btnGuardarUsuario">Crear usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- th:inline="none": Thymeleaf no debe interpretar [[...]] dentro del JavaScript -->
+<script th:inline="none">
+    // Nuevo usuario: ventana vacía. Editar: nombres, rol y contraseña opcional; el usuario no se cambia.
+    document.addEventListener('DOMContentLoaded', function () {
+        cruzmaTabla('#tablaUsuarios', { order: [ [0, 'asc'] ] });   // ordenado por usuario
+
+        var modalEl = document.getElementById('modalUsuario');
+        var modal = new bootstrap.Modal(modalEl);
+        var form = document.getElementById('formUsuario');
+        var usuario = form.elements['username'];
+        var clave = form.elements['password'];
+
+        function abrir(datos) {
+            var nuevo = !datos.id;
+            form.reset();
+            form.action = nuevo ? form.dataset.crear : form.dataset.editar + datos.id;
+            usuario.value = datos.username || '';
+            usuario.readOnly = !nuevo;                         // el nombre de usuario no se edita
+            usuario.classList.toggle('bg-body-tertiary', !nuevo);
+            usuario.required = nuevo;
+            form.elements['nombres'].value = datos.nombres || '';
+            if (datos.idRol) form.elements['idRol'].value = datos.idRol;
+            clave.value = '';
+            clave.required = nuevo;                            // al editar, la contraseña es opcional
+            document.getElementById('marcaClave').hidden = !nuevo;
+            document.getElementById('ayudaClave').textContent = nuevo
+                ? 'Mínimo 8 caracteres. Se guarda cifrada.'
+                : 'Déjala vacía para conservar la actual, o escribe una nueva de al menos 8 caracteres.';
+            document.getElementById('tituloModalUsuario').textContent = nuevo ? 'Nuevo usuario' : 'Editar usuario';
+            document.getElementById('btnGuardarUsuario').textContent = nuevo ? 'Crear usuario' : 'Actualizar usuario';
+            modal.show();
+        }
+
+        document.getElementById('btnNuevoUsuario').addEventListener('click', function () { abrir({}); });
+
+        // Un solo escuchador para toda la tabla: sigue funcionando en todas las páginas de DataTables
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btn-editar-usuario');
+            if (btn) abrir(btn.dataset);                       // data-id-rol llega como dataset.idRol
+        });
+
+        // El usuario se escribe en minúsculas
+        usuario.addEventListener('input', function () { usuario.value = usuario.value.toLowerCase(); });
+
+        modalEl.addEventListener('shown.bs.modal', function () {
+            (usuario.readOnly ? form.elements['nombres'] : usuario).focus();
+        });
+    });
+</script>
 </body>
 </html>

@@ -69,15 +69,47 @@ public class UsuarioService {
             throw new IllegalArgumentException("El usuario debe tener de 4 a 30 caracteres: minúsculas, números, punto o guion bajo");
         }
         if (usuarios.existsByUsername(username)) throw new IllegalArgumentException("El usuario " + username + " ya existe");
+        if (nombres == null || nombres.isBlank()) throw new IllegalArgumentException("Ingresa los nombres");
         if (password == null || password.length() < 8) throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
         Usuario u = new Usuario();
         u.setUsername(username);
-        u.setNombres(nombres);
+        u.setNombres(nombres.trim());
         u.setPasswordHash(encoder.encode(password));
         u.setRol(roles.findById(idRol).orElseThrow(() -> new IllegalArgumentException("Rol no válido")));
         Usuario guardado = usuarios.save(u);
         Auditoria.registrar("CREAR_USUARIO", username + " rol=" + u.getRol().getNombre());
         return guardado;
+    }
+
+    /**
+     * Actualiza los nombres, el rol y, si se indica, la contraseña de un usuario.
+     * El nombre de usuario no cambia, porque identifica al autor en la auditoría.
+     *
+     * @param id             id del usuario a editar
+     * @param nombres        nombre completo
+     * @param idRol          id del rol asignado
+     * @param nuevaPassword  contraseña nueva de al menos 8 caracteres, o vacía para conservar la actual
+     * @param usernameActual usuario que hace el cambio; no puede cambiar su propio rol
+     * @return el usuario actualizado
+     * @throws IllegalArgumentException si algún dato no cumple las reglas
+     * @since 0.4.1
+     */
+    @Transactional
+    public Usuario actualizar(Long id, String nombres, Long idRol, String nuevaPassword, String usernameActual) {
+        Usuario u = usuarios.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        if (nombres == null || nombres.isBlank()) throw new IllegalArgumentException("Ingresa los nombres");
+        Rol rol = roles.findById(idRol).orElseThrow(() -> new IllegalArgumentException("Rol no válido"));
+        if (u.getUsername().equals(usernameActual) && !rol.getNombre().equals(u.getRol().getNombre())) {
+            throw new IllegalArgumentException("No puedes cambiar tu propio rol");
+        }
+        boolean cambiaClave = nuevaPassword != null && !nuevaPassword.isEmpty();
+        if (cambiaClave && nuevaPassword.length() < 8) throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
+        u.setNombres(nombres.trim());
+        u.setRol(rol);
+        if (cambiaClave) u.setPasswordHash(encoder.encode(nuevaPassword));
+        Auditoria.registrar(usernameActual, "EDITAR_USUARIO",
+                u.getUsername() + " rol=" + rol.getNombre() + (cambiaClave ? " contraseña=cambiada" : ""));
+        return usuarios.save(u);
     }
 
     /**
