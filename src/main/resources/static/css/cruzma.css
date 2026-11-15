@@ -101,3 +101,6 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
 .op-Modificación { color: var(--pendiente); border-color: var(--pendiente); }
 .op-Eliminación { color: var(--error); border-color: var(--error); }
 .cambios { margin: 0; padding-left: 18px; font-size: 13.5px; }
+
+/* Formularios en ventana emergente: marca de campo obligatorio */
+.obligatorio { color: var(--bs-danger); }

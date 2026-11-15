@@ -2,6 +2,13 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versionado semántico.
 
+## [Sin publicar]
+
+### Cambiado
+- P4 Clientes: botón **Nuevo cliente** y edición en una ventana emergente (modal de Bootstrap) en lugar del formulario lateral.
+  Si hay errores de validación, la ventana se vuelve a abrir con los mensajes. Campos obligatorios marcados con asterisco rojo.
+- El teléfono del cliente solo acepta números (6 a 9 dígitos): validado en el servidor y filtrado al escribir.
+
 ## [0.4.0] – APF3, auditoría de datos
 
 ### Agregado

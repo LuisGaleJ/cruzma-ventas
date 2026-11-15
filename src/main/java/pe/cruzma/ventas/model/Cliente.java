@@ -43,6 +43,8 @@ public class Cliente {
     @Column(length = 200)
     private String direccion;
 
+    /** Opcional; si se ingresa, solo dígitos: 9 para celular o fijo con código (073...), 6 para fijo local. */
+    @Pattern(regexp = "\\d{6,9}|", message = "El teléfono solo acepta números (de 6 a 9 dígitos)")
     @Column(length = 15)
     private String telefono;
 

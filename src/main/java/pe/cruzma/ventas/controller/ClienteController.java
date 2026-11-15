@@ -10,7 +10,9 @@ import pe.cruzma.ventas.model.Cliente;
 import pe.cruzma.ventas.model.TipoDocumento;
 import pe.cruzma.ventas.service.ClienteService;
 
-/** P4 Clientes (RF03): búsqueda por DNI, RUC o nombre, registro y edición. */
+/**
+ * P4 Clientes (RF03): búsqueda por DNI, RUC o nombre; registro y edición en una ventana emergente.
+ */
 @Controller
 @RequestMapping("/clientes")
 public class ClienteController {
@@ -27,7 +29,7 @@ public class ClienteController {
      * GET {@code /clientes}: búsqueda, lista y formulario de clientes.
      *
      * @param q      texto a buscar
-     * @param editar id del cliente a editar; {@code null} para uno nuevo
+     * @param editar id del cliente a editar: abre la ventana con sus datos (enlace directo)
      * @param model  modelo de la vista
      * @return vista {@code clientes/lista}
      */
@@ -38,6 +40,7 @@ public class ClienteController {
         if (!model.containsAttribute("cliente")) {
             model.addAttribute("cliente", editar != null ? service.obtener(editar) : new Cliente());
         }
+        model.addAttribute("abrirFormulario", editar != null);
         model.addAttribute("tipos", TipoDocumento.values());
         return "clientes/lista";
     }
@@ -64,6 +67,7 @@ public class ClienteController {
         }
         model.addAttribute("clientes", service.buscar(null));
         model.addAttribute("tipos", TipoDocumento.values());
+        model.addAttribute("abrirFormulario", true);   // vuelve a abrir la ventana con los errores
         return "clientes/lista";
     }
 }

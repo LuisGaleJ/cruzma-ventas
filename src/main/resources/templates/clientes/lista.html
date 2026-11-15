@@ -8,63 +8,135 @@
         <div th:replace="~{fragments/layout :: mensajes}"></div>
         <div class="encabezado">
             <div><h1>Clientes</h1><p>Busca por DNI, RUC o nombre.</p></div>
-            <form class="d-flex gap-2" th:action="@{/clientes}" method="get" role="search">
-                <input name="q" th:value="${q}" class="form-control" placeholder="DNI, RUC o nombre" aria-label="Buscar cliente">
-                <button class="btn btn-outline-secondary">Buscar</button>
-            </form>
-        </div>
-        <div class="row g-4">
-            <div class="col-lg-7">
-                <section class="hoja">
-                    <p th:if="${#lists.isEmpty(clientes)}" class="text-secondary m-0">No se encontraron clientes. Regístralo con el formulario.</p>
-                    <table th:unless="${#lists.isEmpty(clientes)}" class="table">
-                        <thead><tr><th>Documento</th><th>Nombre o razón social</th><th>Teléfono</th><th></th></tr></thead>
-                        <tbody>
-                        <tr th:each="c : ${clientes}">
-                            <td th:text="${c.tipoDoc} + ' ' + ${c.numDoc}">doc</td>
-                            <td th:text="${c.razonSocial}">nombre</td>
-                            <td th:text="${c.telefono}">tel</td>
-                            <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-outline-secondary" th:href="@{/clientes(editar=${c.id})}">Editar</a>
-                                <a sec:authorize="hasAnyRole('ADMIN','VENDEDOR')" class="btn btn-sm btn-outline-secondary"
-                                   th:href="@{/cotizaciones/nueva(clienteId=${c.id})}">Cotizar</a>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </div>
-            <div class="col-lg-5">
-                <form class="hoja" th:action="@{/clientes/guardar}" th:object="${cliente}" method="post" novalidate>
-                    <h2 th:text="*{id} == null ? 'Nuevo cliente' : 'Editar cliente'">Nuevo cliente</h2>
-                    <input type="hidden" th:field="*{id}">
-                    <div class="row g-2 mb-3">
-                        <div class="col-4"><label class="form-label" for="tipoDoc">Tipo</label>
-                            <select th:field="*{tipoDoc}" class="form-select">
-                                <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DNI</option>
-                            </select></div>
-                        <div class="col-8"><label class="form-label" for="numDoc">Número</label>
-                            <input th:field="*{numDoc}" class="form-control" inputmode="numeric" maxlength="11" th:errorclass="is-invalid">
-                            <div class="invalid-feedback" th:errors="*{numDoc}"></div></div>
-                    </div>
-                    <div class="mb-3"><label class="form-label" for="razonSocial">Nombre o razón social</label>
-                        <input th:field="*{razonSocial}" class="form-control" th:errorclass="is-invalid">
-                        <div class="invalid-feedback" th:errors="*{razonSocial}"></div></div>
-                    <div class="mb-3"><label class="form-label" for="direccion">Dirección</label>
-                        <input th:field="*{direccion}" class="form-control"></div>
-                    <div class="row g-2 mb-4">
-                        <div class="col-5"><label class="form-label" for="telefono">Teléfono</label>
-                            <input th:field="*{telefono}" class="form-control"></div>
-                        <div class="col-7"><label class="form-label" for="email">Correo</label>
-                            <input th:field="*{email}" class="form-control" th:errorclass="is-invalid">
-                            <div class="invalid-feedback" th:errors="*{email}"></div></div>
-                    </div>
-                    <button class="btn btn-principal">Guardar cliente</button>
-                    <a th:if="*{id} != null" th:href="@{/clientes}" class="btn btn-link">Cancelar</a>
+            <div class="d-flex flex-wrap gap-2">
+                <form class="d-flex gap-2" th:action="@{/clientes}" method="get" role="search">
+                    <input name="q" th:value="${q}" class="form-control" placeholder="DNI, RUC o nombre" aria-label="Buscar cliente">
+                    <button class="btn btn-outline-secondary">Buscar</button>
                 </form>
+                <button type="button" class="btn btn-principal" id="btnNuevoCliente">Nuevo cliente</button>
             </div>
         </div>
+
+        <section class="hoja">
+            <p th:if="${#lists.isEmpty(clientes)}" class="text-secondary m-0">No se encontraron clientes. Regístralo con el botón «Nuevo cliente».</p>
+            <table th:unless="${#lists.isEmpty(clientes)}" class="table">
+                <thead><tr><th>Documento</th><th>Nombre o razón social</th><th>Teléfono</th><th>Correo</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${clientes}">
+                    <td th:text="${c.tipoDoc} + ' ' + ${c.numDoc}">doc</td>
+                    <td th:text="${c.razonSocial}">nombre</td>
+                    <td th:text="${c.telefono}">tel</td>
+                    <td th:text="${c.email}">correo</td>
+                    <td class="text-end text-nowrap">
+                        <!-- Los datos viajan en atributos data-*; el script los copia al formulario de la ventana -->
+                        <a class="btn btn-sm btn-outline-secondary btn-editar-cliente" th:href="@{/clientes(editar=${c.id})}"
+                           th:data-id="${c.id}" th:data-tipo-doc="${c.tipoDoc}" th:data-num-doc="${c.numDoc}"
+                           th:data-razon-social="${c.razonSocial}" th:data-direccion="${c.direccion}"
+                           th:data-telefono="${c.telefono}" th:data-email="${c.email}">Editar</a>
+                        <a sec:authorize="hasAnyRole('ADMIN','VENDEDOR')" class="btn btn-sm btn-outline-secondary"
+                           th:href="@{/cotizaciones/nueva(clienteId=${c.id})}">Cotizar</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 </div>
+
+<!-- Ventana emergente para registrar o editar un cliente -->
+<div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="tituloModalCliente" aria-hidden="true"
+     th:data-abrir="${abrirFormulario}">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="formCliente" th:action="@{/clientes/guardar}" th:object="${cliente}" method="post" novalidate>
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tituloModalCliente"
+                    th:text="*{id} == null ? 'Nuevo cliente' : 'Editar cliente'">Nuevo cliente</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div th:if="${error}" class="alert alert-danger py-2" th:text="${error}">error</div>
+                <input type="hidden" th:field="*{id}">
+                <div class="row g-2 mb-3">
+                    <div class="col-4"><label class="form-label" for="tipoDoc">Tipo <span class="obligatorio">*</span></label>
+                        <select th:field="*{tipoDoc}" class="form-select">
+                            <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DNI</option>
+                        </select></div>
+                    <div class="col-8"><label class="form-label" for="numDoc">Número <span class="obligatorio">*</span></label>
+                        <input th:field="*{numDoc}" class="form-control solo-digitos" inputmode="numeric" maxlength="11" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{numDoc}"></div></div>
+                </div>
+                <div class="mb-3"><label class="form-label" for="razonSocial">Nombre o razón social <span class="obligatorio">*</span></label>
+                    <input th:field="*{razonSocial}" class="form-control" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{razonSocial}"></div></div>
+                <div class="mb-3"><label class="form-label" for="direccion">Dirección</label>
+                    <input th:field="*{direccion}" class="form-control"></div>
+                <div class="row g-2">
+                    <div class="col-5"><label class="form-label" for="telefono">Teléfono</label>
+                        <input th:field="*{telefono}" class="form-control solo-digitos" inputmode="numeric" maxlength="9"
+                               th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{telefono}"></div></div>
+                    <div class="col-7"><label class="form-label" for="email">Correo</label>
+                        <input th:field="*{email}" type="email" class="form-control" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{email}"></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-principal" id="btnGuardarCliente"
+                        th:text="*{id} == null ? 'Guardar cliente' : 'Actualizar cliente'">Guardar cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Nuevo cliente: ventana vacía. Editar: ventana con los datos de la fila, sin recargar la página.
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalEl = document.getElementById('modalCliente');
+        var modal = new bootstrap.Modal(modalEl);
+        var form = document.getElementById('formCliente');
+        var campos = ['id', 'tipoDoc', 'numDoc', 'razonSocial', 'direccion', 'telefono', 'email'];
+
+        function limpiarErrores() {
+            form.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+            form.querySelectorAll('.alert-danger').forEach(function (el) { el.remove(); });
+        }
+
+        function abrir(datos) {
+            limpiarErrores();
+            campos.forEach(function (c) {
+                var el = form.elements[c];
+                if (el) el.value = datos[c] || (c === 'tipoDoc' ? el.options[0].value : '');
+            });
+            var nuevo = !datos.id;
+            document.getElementById('tituloModalCliente').textContent = nuevo ? 'Nuevo cliente' : 'Editar cliente';
+            document.getElementById('btnGuardarCliente').textContent = nuevo ? 'Guardar cliente' : 'Actualizar cliente';
+            modal.show();
+        }
+
+        document.getElementById('btnNuevoCliente').addEventListener('click', function () { abrir({}); });
+
+        document.querySelectorAll('.btn-editar-cliente').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();               // sin JavaScript, el enlace /clientes?editar=ID sigue funcionando
+                abrir(btn.dataset);               // data-num-doc llega como dataset.numDoc
+            });
+        });
+
+        // Teléfono y número de documento: se borra al instante cualquier carácter que no sea dígito
+        // (incluido lo pegado). La validación real está en el servidor, en Cliente.
+        form.querySelectorAll('.solo-digitos').forEach(function (el) {
+            el.addEventListener('input', function () {
+                var limpio = el.value.replace(/\D/g, '');
+                if (limpio !== el.value) el.value = limpio;
+            });
+        });
+
+        modalEl.addEventListener('shown.bs.modal', function () { form.elements['numDoc'].focus(); });
+
+        // Al volver del servidor con errores de validación (o con ?editar=ID), la ventana se abre sola
+        if (modalEl.dataset.abrir === 'true') modal.show();
+    });
+</script>
 </body>
 </html>
