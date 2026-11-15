@@ -7,6 +7,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 ### Cambiado
 - P4 Clientes: botón **Nuevo cliente** y edición en una ventana emergente (modal de Bootstrap) en lugar del formulario lateral.
   Si hay errores de validación, la ventana se vuelve a abrir con los mensajes. Campos obligatorios marcados con asterisco rojo.
+- P5 Productos y servicios: botón **Nuevo producto o servicio** y edición en ventana emergente (solo ADMIN), con columna Tipo en la tabla.
+  Si falta un dato, la ventana se vuelve a abrir con lo escrito y el mensaje.
+- Código automático de productos y servicios: `PRD-001`, `PRD-002`... y `SRV-001`, `SRV-002`... Lo asigna el servidor
+  al registrar (el formulario lo muestra en solo lectura y cambia con el tipo); al editar se conserva, salvo que cambie el tipo.
+- Tablas de Clientes y de Productos y servicios con **DataTables 2.1** (búsqueda instantánea, orden por columna
+  y paginación de 10/25/50/100, en español). Configuración común en `static/js/tablas.js`.
+- P3 Usuarios: botón **Nuevo usuario**, edición en ventana emergente (nombres, rol y contraseña opcional) y tabla con DataTables.
+  El nombre de usuario no se edita y nadie puede cambiar su propio rol. El navegador ya no autocompleta el formulario con la sesión.
 - El teléfono del cliente solo acepta números (6 a 9 dígitos): validado en el servidor y filtrado al escribir.
 
 ## [0.4.0] – APF3, auditoría de datos

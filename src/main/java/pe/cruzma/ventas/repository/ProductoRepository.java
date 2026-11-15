@@ -26,4 +26,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * @return ítems de ese tipo
      */
     List<Producto> findByTipoOrderByDescripcionAsc(TipoProducto tipo);
+    /**
+     * Lista los ítems cuyo código empieza con un prefijo, para calcular el siguiente correlativo.
+     *
+     * @param prefijo por ejemplo {@code "PRD-"} o {@code "SRV-"}
+     * @return ítems con ese prefijo
+     * @since 0.4.1
+     */
+    List<Producto> findByCodigoStartingWith(String prefijo);
 }

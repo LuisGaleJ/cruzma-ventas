@@ -26,7 +26,7 @@ public class Producto {
     @Column(name = "id_producto")
     private Long id;
 
-    @NotBlank(message = "Ingresa un código")
+    /** Automático (PRD-001, SRV-001...): lo asigna {@code ProductoService.guardar}, no el usuario. */
     @Column(nullable = false, unique = true, length = 20)
     private String codigo;
 
