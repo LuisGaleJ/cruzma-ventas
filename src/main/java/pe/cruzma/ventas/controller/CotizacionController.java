@@ -75,7 +75,7 @@ public class CotizacionController {
      * @param clienteId   cliente de la cotización
      * @param productoIds productos de cada fila
      * @param cantidades  cantidades de cada fila
-     * @param medidas     medidas de cada fila
+     * @param request     petición, para leer las medidas de cada fila sin separarlas por comas
      * @param precios     precios de cada fila
      * @param user        usuario que cotiza
      * @param ra          mensajes para la siguiente vista
@@ -85,9 +85,12 @@ public class CotizacionController {
     public String crear(@RequestParam(required = false) Long clienteId,
                         @RequestParam(name = "productoId", required = false) List<Long> productoIds,
                         @RequestParam(name = "cantidad", required = false) List<Integer> cantidades,
-                        @RequestParam(name = "medidas", required = false) List<String> medidas,
+                        jakarta.servlet.http.HttpServletRequest request,
                         @RequestParam(name = "precio", required = false) List<BigDecimal> precios,
                         @AuthenticationPrincipal UserDetails user, RedirectAttributes ra) {
+        // Con una sola fila, Spring partiría "3,20 x 0,90" en dos valores por la coma: se leen tal cual llegan
+        String[] valores = request.getParameterValues("medidas");
+        List<String> medidas = valores == null ? List.of() : java.util.Arrays.asList(valores);
         List<ItemCotizacionForm> items = new ArrayList<>();
         if (productoIds != null) {
             for (int i = 0; i < productoIds.size(); i++) {

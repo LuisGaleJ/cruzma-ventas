@@ -61,20 +61,25 @@
                 </section>
             </div>
 
-            <div class="col-lg-5" sec:authorize="hasAnyRole('ADMIN','CAJA')">
-                <form class="hoja" th:if="${venta.saldo.signum() > 0 and venta.estado.name() != 'ANULADA'}"
-                      th:action="@{/ventas/{id}/pagos(id=${venta.id})}" method="post">
-                    <h2>Registrar pago o adelanto</h2>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6"><label class="form-label" for="monto">Monto S/</label>
-                            <input id="monto" name="monto" type="number" step="0.01" min="0.01" th:max="${venta.saldo}" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label" for="medio">Medio</label>
-                            <select id="medio" name="medio" class="form-select">
-                                <option th:each="m : ${medios}" th:value="${m}" th:text="${m}">medio</option>
-                            </select></div>
+            <div class="col-lg-5" sec:authorize="hasAnyRole('ADMIN','CAJA')"
+                 th:with="puedePagar=${venta.saldo.signum() > 0 and venta.estado.name() != 'ANULADA'}">
+                <section class="hoja">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="m-0">Pagos</h2>
+                        <button type="button" class="btn btn-principal btn-sm" data-bs-toggle="modal" data-bs-target="#modalPago"
+                                th:if="${puedePagar}">Registrar pago</button>
                     </div>
-                    <button class="btn btn-outline-secondary">Registrar pago</button>
-                </form>
+                    <p th:if="${#lists.isEmpty(venta.pagos)}" class="text-secondary m-0">Sin pagos registrados.</p>
+                    <table th:unless="${#lists.isEmpty(venta.pagos)}" class="table">
+                        <tbody>
+                        <tr th:each="p : ${venta.pagos}">
+                            <td th:text="${#temporals.format(p.fecha, 'dd/MM HH:mm')}">fecha</td>
+                            <td th:text="${p.medio}">medio</td>
+                            <td class="num" th:text="${#numbers.formatDecimal(p.monto, 1, 'COMMA', 2, 'POINT')}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
 
                 <form class="hoja" th:unless="${venta.tieneComprobanteVigente() or venta.estado.name() == 'ANULADA'}"
                       th:action="@{/ventas/{id}/emitir(id=${venta.id})}" method="post">
@@ -94,23 +99,53 @@
                     </div>
                     <button class="btn btn-principal" th:disabled="${#lists.isEmpty(venta.pagos)}">Emitir y enviar a SUNAT</button>
                 </form>
-
-                <section class="hoja">
-                    <h2>Pagos</h2>
-                    <p th:if="${#lists.isEmpty(venta.pagos)}" class="text-secondary m-0">Sin pagos registrados.</p>
-                    <table th:unless="${#lists.isEmpty(venta.pagos)}" class="table">
-                        <tbody>
-                        <tr th:each="p : ${venta.pagos}">
-                            <td th:text="${#temporals.format(p.fecha, 'dd/MM HH:mm')}">fecha</td>
-                            <td th:text="${p.medio}">medio</td>
-                            <td class="num" th:text="${#numbers.formatDecimal(p.monto, 1, 'COMMA', 2, 'POINT')}">0</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
             </div>
         </div>
     </main>
 </div>
+<!-- Ventana emergente para registrar un pago o adelanto (solo administrador y caja) -->
+<div sec:authorize="hasAnyRole('ADMIN','CAJA')" th:if="${venta.saldo.signum() > 0 and venta.estado.name() != 'ANULADA'}"
+     class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="tituloModalPago" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="formPago" th:action="@{/ventas/{id}/pagos(id=${venta.id})}" method="post">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tituloModalPago">Registrar pago o adelanto</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Saldo pendiente:
+                    <strong id="saldoPendiente" th:data-saldo="${venta.saldo}"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(venta.saldo, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></p>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label" for="monto">Monto S/ <span class="obligatorio">*</span></label>
+                        <input id="monto" name="monto" type="number" step="0.01" min="0.01" th:max="${venta.saldo}"
+                               class="form-control" required>
+                        <button type="button" class="btn btn-link btn-sm p-0 mt-1" id="btnPagarSaldo">Pagar el saldo completo</button></div>
+                    <div class="col-6"><label class="form-label" for="medio">Medio <span class="obligatorio">*</span></label>
+                        <select id="medio" name="medio" class="form-select">
+                            <option th:each="m : ${medios}" th:value="${m}" th:text="${m}">medio</option>
+                        </select></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-principal">Registrar pago</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- th:inline="none": Thymeleaf no debe interpretar [[...]] dentro del JavaScript -->
+<script th:inline="none">
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalEl = document.getElementById('modalPago');
+        if (!modalEl) return;                     // venta pagada o anulada, o rol sin permiso
+        var monto = document.getElementById('monto');
+        var saldo = document.getElementById('saldoPendiente').dataset.saldo;
+        document.getElementById('btnPagarSaldo').addEventListener('click', function () { monto.value = saldo; monto.focus(); });
+        modalEl.addEventListener('show.bs.modal', function () { document.getElementById('formPago').reset(); });
+        modalEl.addEventListener('shown.bs.modal', function () { monto.focus(); });
+    });
+</script>
 </body>
 </html>

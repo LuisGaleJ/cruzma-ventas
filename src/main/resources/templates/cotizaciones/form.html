@@ -35,11 +35,12 @@
                     <tr class="item">
                         <td><select name="productoId" class="form-select producto" aria-label="Producto">
                             <option value="">Elige</option>
-                            <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario}"
+                            <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario},data-unidad=${p.unidad}"
                                     th:text="${p.descripcion} + ' (' + ${p.unidad} + ')'">producto</option>
                         </select></td>
                         <td><input name="cantidad" type="number" min="1" value="1" class="form-control cantidad" aria-label="Cantidad"></td>
-                        <td><input name="medidas" class="form-control" placeholder="ej. 3.20 m x 0.90 m" aria-label="Medidas"></td>
+                        <td><input name="medidas" class="form-control medidas" placeholder="Opcional" aria-label="Medidas">
+                            <div class="form-text metrado"></div></td>
                         <td><input name="precio" type="number" min="0" step="0.01" class="form-control precio" aria-label="Precio"></td>
                         <td class="num subtotal">0.00</td>
                         <td><button type="button" class="btn btn-sm btn-outline-secondary quitar" aria-label="Quitar ítem">Quitar</button></td>
@@ -59,8 +60,32 @@
         </form>
     </main>
 </div>
-<script>
-    // Calcula subtotales y totales en pantalla; el servidor vuelve a calcularlos al guardar.
+<!-- th:inline="none": Thymeleaf no debe interpretar [[...]] dentro del JavaScript -->
+<script th:inline="none">
+    // Calcula subtotales y totales en pantalla; el servidor vuelve a calcularlos al guardar (clase Metrado).
+    // Productos en M/ML/M2/M3: subtotal = precio x cantidad x metrado. Otros: precio x cantidad.
+    const DIMENSIONES = { M: 1, ML: 1, M2: 2, M3: 3 };
+    const AYUDA = {
+        1: 'Longitud en metros, ej. 4.5',
+        2: 'Área (ej. 5) o largo x alto, ej. 3.20 x 0.90',
+        3: 'Volumen (ej. 2) o largo x ancho x alto'
+    };
+
+    function unidadDe(fila) {
+        const op = fila.querySelector('.producto').selectedOptions[0];
+        return ((op && op.dataset.unidad) || '').trim().toUpperCase();
+    }
+
+    // Devuelve el metrado (número > 0), 1 si la unidad no se cobra por medida, o null si las medidas no son válidas
+    function metrado(unidad, texto) {
+        const dims = DIMENSIONES[unidad] || 0;
+        if (!dims) return 1;
+        const nums = (texto || '').toLowerCase().replace(/m[23²³]/g, ' ')
+            .match(/\d+(?:[.,]\d+)?/g) || [];
+        if (!nums.length || (nums.length !== 1 && nums.length !== dims)) return null;
+        const r = nums.map(n => parseFloat(n.replace(',', '.'))).reduce((a, b) => a * b, 1);
+        return r > 0 ? r : null;
+    }
     const tabla = document.querySelector('#items tbody');
     const plantilla = tabla.querySelector('.item').cloneNode(true);
     const fmt = n => n.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -70,7 +95,16 @@
         tabla.querySelectorAll('.item').forEach(fila => {
             const cant = parseFloat(fila.querySelector('.cantidad').value) || 0;
             const precio = parseFloat(fila.querySelector('.precio').value) || 0;
-            const sub = cant * precio;
+            const unidad = unidadDe(fila);
+            const medidas = fila.querySelector('.medidas');
+            const aviso = fila.querySelector('.metrado');
+            const dims = DIMENSIONES[unidad] || 0;
+            const m = metrado(unidad, medidas.value);
+            medidas.placeholder = dims ? AYUDA[dims] : 'Opcional';
+            medidas.required = dims > 0;
+            medidas.classList.toggle('is-invalid', dims > 0 && medidas.value !== '' && m === null);
+            aviso.textContent = dims && m !== null ? '= ' + fmt(m) + ' ' + unidad.toLowerCase() + ' por unidad' : '';
+            const sub = cant * precio * (m === null ? 0 : m);
             fila.querySelector('.subtotal').textContent = fmt(sub);
             total += sub;
         });
@@ -96,6 +130,7 @@
     });
     document.getElementById('agregar').addEventListener('click', () => {
         tabla.appendChild(plantilla.cloneNode(true));
+        recalcular();
     });
 </script>
 </body>

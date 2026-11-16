@@ -82,7 +82,7 @@ public class Venta {
         v.usuario = usuario;
         v.cotizacion = cot;
         for (DetalleCotizacion d : cot.getDetalles()) {
-            v.agregarDetalle(new DetalleVenta(d.getProducto(), d.getCantidad(), d.getPrecio()));
+            v.agregarDetalle(new DetalleVenta(d.getProducto(), d.getCantidad(), d.getPrecio(), d.getSubtotal()));
         }
         v.total = cot.getTotal();
         v.saldo = v.total;

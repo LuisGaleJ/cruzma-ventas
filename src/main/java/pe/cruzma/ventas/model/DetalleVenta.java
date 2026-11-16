@@ -50,10 +50,24 @@ public class DetalleVenta {
      * @param precio   precio unitario con IGV
      */
     public DetalleVenta(Producto producto, int cantidad, BigDecimal precio) {
+        this(producto, cantidad, precio, precio.multiply(BigDecimal.valueOf(cantidad)));
+    }
+
+    /**
+     * Crea un ítem de venta con el subtotal ya calculado en la cotización
+     * (incluye el metrado de los productos que se cobran por M, M2 o M3).
+     *
+     * @param producto producto o servicio vendido
+     * @param cantidad unidades vendidas
+     * @param precio   precio unitario con IGV
+     * @param subtotal importe del ítem
+     * @since 0.4.1
+     */
+    public DetalleVenta(Producto producto, int cantidad, BigDecimal precio, BigDecimal subtotal) {
         this.producto = producto;
         this.cantidad = cantidad;
         this.precio = precio;
-        this.subtotal = precio.multiply(BigDecimal.valueOf(cantidad));
+        this.subtotal = subtotal;
     }
 
     /** {@return identificador} */
@@ -72,6 +86,6 @@ public class DetalleVenta {
     public int getCantidad() { return cantidad; }
     /** {@return precio unitario pactado con IGV} */
     public BigDecimal getPrecio() { return precio; }
-    /** {@return subtotal (cantidad por precio)} */
+    /** {@return subtotal del ítem} */
     public BigDecimal getSubtotal() { return subtotal; }
 }

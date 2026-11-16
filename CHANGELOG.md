@@ -15,6 +15,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
   y paginación de 10/25/50/100, en español). Configuración común en `static/js/tablas.js`.
 - P3 Usuarios: botón **Nuevo usuario**, edición en ventana emergente (nombres, rol y contraseña opcional) y tabla con DataTables.
   El nombre de usuario no se edita y nadie puede cambiar su propio rol. El navegador ya no autocompleta el formulario con la sesión.
+- **Cotización por medida**: si el producto es M, ML, M2 o M3, el subtotal es precio x cantidad x metrado.
+  Las medidas se escriben como área o longitud (`5`) o como largo x alto (`3.20 x 0.90`); la pantalla muestra el metrado
+  calculado y el servidor lo vuelve a calcular (clase `Metrado`). La venta conserva el importe de la cotización.
+- Corregido: con una sola fila, una medida con coma (`3,20 x 0,90`) ya no se parte en dos valores.
+- P7 Venta: **Registrar pago** en ventana emergente, con el saldo pendiente a la vista y el atajo «Pagar el saldo completo».
 - El teléfono del cliente solo acepta números (6 a 9 dígitos): validado en el servidor y filtrado al escribir.
 
 ## [0.4.0] – APF3, auditoría de datos
