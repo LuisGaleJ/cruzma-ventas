@@ -96,7 +96,7 @@ Flujo de una petición: `Controller` recibe el formulario → `Service` aplica l
 - Cotización válida **15 días** (`CotizacionService.DIAS_VALIDEZ`); al vencer pasa a `VENCIDA` y no se puede convertir.
 - Una cotización genera **como máximo una venta** (`venta.id_cotizacion` es único).
 - Un pago no puede superar el saldo; cuando el saldo llega a 0 la venta pasa a `PAGADA` (`Venta.registrarPago`).
-- Para emitir un comprobante la venta debe tener **al menos un pago** y ningún comprobante aceptado (CU08).
+- Para emitir un comprobante la venta debe estar **cancelada (saldo cero)** y sin otro comprobante aceptado (CU08).
 - **Factura (01)** solo para clientes con RUC; **boleta (03)** para DNI. Series `F001`, `B001`; nota de crédito `FC01`.
 - El correlativo es el último de la serie + 1; `serie + correlativo` es único.
 - Un comprobante aceptado **no se borra**: se anula con nota de crédito (07), queda `ANULADO` y la venta `ANULADA`.

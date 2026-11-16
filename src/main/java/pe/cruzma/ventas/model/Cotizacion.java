@@ -42,6 +42,10 @@ public class Cotizacion {
     @Column(nullable = false, length = 10)
     private EstadoCotizacion estado = EstadoCotizacion.PENDIENTE;
 
+    /** Descuento global en porcentaje, aplicado sobre la suma de los ítems (0 a 100). */
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal descuento = BigDecimal.ZERO;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
 
@@ -68,14 +72,35 @@ public class Cotizacion {
     }
 
     /**
-     * Recalcula el total como la suma de los subtotales de sus ítems.
+     * Calcula el total: suma de los ítems (ya con su descuento) menos el descuento global.
      *
-     * @return el total actualizado, con IGV incluido
+     * @return el total calculado
      */
     public BigDecimal calcularTotal() {
-        total = detalles.stream().map(DetalleCotizacion::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        total = Descuento.aplicar(getSubtotalItems(), descuento);
         return total;
     }
+
+    /** {@return suma de los ítems con su descuento, antes del descuento global} */
+    public BigDecimal getSubtotalItems() {
+        return detalles.stream().map(DetalleCotizacion::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /** {@return suma de los ítems sin ningún descuento} */
+    public BigDecimal getBruto() {
+        return detalles.stream().map(DetalleCotizacion::getBruto).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /** {@return monto del descuento global en soles} */
+    public BigDecimal getMontoDescuentoGlobal() { return getSubtotalItems().subtract(total); }
+
+    /** {@return {@code true} si algún ítem tiene descuento} */
+    public boolean isTieneDescuentoPorItem() {
+        return detalles.stream().anyMatch(d -> d.getDescuento().signum() > 0);
+    }
+
+    /** {@return descuento total efectivo en porcentaje (ítems y global juntos)} */
+    public BigDecimal getDescuentoEfectivo() { return Descuento.efectivo(getBruto(), total); }
 
     /**
      * Indica si la cotización sigue pendiente después de su fecha de vencimiento.
@@ -125,6 +150,15 @@ public class Cotizacion {
     public void setEstado(EstadoCotizacion estado) { this.estado = estado; }
     /** {@return importe total con IGV} */
     public BigDecimal getTotal() { return total; }
+    /** {@return descuento global en porcentaje} */
+    public BigDecimal getDescuento() { return descuento; }
+    /**
+     * Asigna el descuento global.
+     *
+     * @param descuento porcentaje (0 a 100); {@code null} es 0
+     * @since 0.6.0
+     */
+    public void setDescuento(BigDecimal descuento) { this.descuento = Descuento.porcentaje(descuento); }
     /** {@return cliente} */
     public Cliente getCliente() { return cliente; }
     /**

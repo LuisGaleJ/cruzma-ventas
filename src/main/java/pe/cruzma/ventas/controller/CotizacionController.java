@@ -55,11 +55,14 @@ public class CotizacionController {
      * GET {@code /cotizaciones/nueva}: formulario de nueva cotización (P6).
      *
      * @param clienteId cliente preseleccionado, opcional
+     * @param user      usuario que cotiza (define el descuento máximo)
      * @param model     modelo de la vista
      * @return vista {@code cotizaciones/form}
      */
     @GetMapping("/nueva")
-    public String nueva(@RequestParam(required = false) Long clienteId, Model model) {
+    public String nueva(@RequestParam(required = false) Long clienteId,
+                        @AuthenticationPrincipal UserDetails user, Model model) {
+        model.addAttribute("descuentoMaximo", pe.cruzma.ventas.model.Descuento.maximo(usuarios.porUsername(user.getUsername())));
         model.addAttribute("clientes", clientes.buscar(null));
         model.addAttribute("productos", productos.listar(null));
         model.addAttribute("clienteId", clienteId);
@@ -77,6 +80,7 @@ public class CotizacionController {
      * @param cantidades  cantidades de cada fila
      * @param request     petición, para leer las medidas de cada fila sin separarlas por comas
      * @param precios     precios de cada fila
+     * @param descuentoGlobal descuento sobre la suma de ítems, en porcentaje
      * @param user        usuario que cotiza
      * @param ra          mensajes para la siguiente vista
      * @return redirección al detalle, o al formulario si hay errores
@@ -87,18 +91,21 @@ public class CotizacionController {
                         @RequestParam(name = "cantidad", required = false) List<Integer> cantidades,
                         jakarta.servlet.http.HttpServletRequest request,
                         @RequestParam(name = "precio", required = false) List<BigDecimal> precios,
+                        @RequestParam(required = false) BigDecimal descuentoGlobal,
                         @AuthenticationPrincipal UserDetails user, RedirectAttributes ra) {
         // Con una sola fila, Spring partiría "3,20 x 0,90" en dos valores por la coma: se leen tal cual llegan
         String[] valores = request.getParameterValues("medidas");
         List<String> medidas = valores == null ? List.of() : java.util.Arrays.asList(valores);
+        String[] desc = request.getParameterValues("descuento");
         List<ItemCotizacionForm> items = new ArrayList<>();
-        if (productoIds != null) {
-            for (int i = 0; i < productoIds.size(); i++) {
-                items.add(new ItemCotizacionForm(productoIds.get(i), valor(cantidades, i), valor(medidas, i), valor(precios, i)));
-            }
-        }
         try {
-            var cot = service.crear(clienteId, items, usuarios.porUsername(user.getUsername()));
+            if (productoIds != null) {
+                for (int i = 0; i < productoIds.size(); i++) {
+                    items.add(new ItemCotizacionForm(productoIds.get(i), valor(cantidades, i), valor(medidas, i),
+                            valor(precios, i), porcentaje(desc, i)));
+                }
+            }
+            var cot = service.crear(clienteId, items, usuarios.porUsername(user.getUsername()), descuentoGlobal);
             ra.addFlashAttribute("ok", "Cotización " + cot.getNumero() + " registrada");
             return "redirect:/cotizaciones/" + cot.getId();
         } catch (IllegalArgumentException e) {
@@ -150,7 +157,7 @@ public class CotizacionController {
     public String convertir(@PathVariable Long id, @AuthenticationPrincipal UserDetails user, RedirectAttributes ra) {
         try {
             Venta v = service.convertirAVenta(id, usuarios.porUsername(user.getUsername()));
-            ra.addFlashAttribute("ok", "Venta registrada. Registra el adelanto para emitir el comprobante.");
+            ra.addFlashAttribute("ok", "Venta registrada. Registra los pagos; el comprobante se emite cuando la venta esté cancelada.");
             return "redirect:/ventas/" + v.getId();
         } catch (IllegalStateException | IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -168,5 +175,15 @@ public class CotizacionController {
      */
     private static <T> T valor(List<T> lista, int i) {
         return (lista != null && i < lista.size()) ? lista.get(i) : null;
+    }
+
+    /** Lee el descuento de la fila {@code i}; vacío o ausente es 0. */
+    private static BigDecimal porcentaje(String[] valores, int i) {
+        if (valores == null || i >= valores.length || valores[i] == null || valores[i].isBlank()) return null;
+        try {
+            return new BigDecimal(valores[i].trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Descuento no válido: " + valores[i]);
+        }
     }
 }

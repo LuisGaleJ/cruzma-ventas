@@ -19,6 +19,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
   Las medidas se escriben como área o longitud (`5`) o como largo x alto (`3.20 x 0.90`); la pantalla muestra el metrado
   calculado y el servidor lo vuelve a calcular (clase `Metrado`). La venta conserva el importe de la cotización.
 - Corregido: con una sola fila, una medida con coma (`3,20 x 0,90`) ya no se parte en dos valores.
+- El comprobante (boleta o factura) solo se emite cuando la venta está **cancelada**; antes bastaba un adelanto.
+  La pantalla de la venta muestra el saldo pendiente y deshabilita «Emitir».
+- **Descuentos en la cotización**: porcentaje por ítem (columna «Desc. %») y descuento global sobre la suma de ítems.
+  Tope por rol: vendedor hasta 10 %, administrador hasta 30 %, aplicado a cada porcentaje y al descuento total efectivo
+  (clase `Descuento`). La cotización impresa muestra el descuento; al convertirla en venta, el descuento global se reparte
+  entre los ítems para que sumen el total. Script `db/migracion-003-descuentos.sql`.
 - **Consulta de DNI y RUC** en la ventana de cliente: botón **Buscar** (y búsqueda automática al completar los dígitos)
   que trae el nombre de RENIEC o la razón social y dirección de SUNAT con la API REST de Decolecta.
   Interfaz `ConsultaDocumentoService` + `DecolectaConsultaService` (token en la variable `DECOLECTA_TOKEN`, caché de 1 día con Guava),

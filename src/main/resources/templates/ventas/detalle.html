@@ -84,7 +84,8 @@
                 <form class="hoja" th:unless="${venta.tieneComprobanteVigente() or venta.estado.name() == 'ANULADA'}"
                       th:action="@{/ventas/{id}/emitir(id=${venta.id})}" method="post">
                     <h2>Emitir comprobante electrónico</h2>
-                    <p th:if="${#lists.isEmpty(venta.pagos)}" class="text-secondary">Registra al menos un adelanto para habilitar la emisión.</p>
+                    <p th:if="${venta.saldo.signum() > 0}" class="text-secondary"
+                       th:text="'Se emite cuando la venta esté cancelada. Saldo pendiente: S/ ' + ${#numbers.formatDecimal(venta.saldo, 1, 'COMMA', 2, 'POINT')}">Saldo</p>
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo" id="boleta" value="BOLETA"
@@ -97,7 +98,7 @@
                             <label class="form-check-label" for="factura">Factura (solo clientes con RUC)</label>
                         </div>
                     </div>
-                    <button class="btn btn-principal" th:disabled="${#lists.isEmpty(venta.pagos)}">Emitir y enviar a SUNAT</button>
+                    <button class="btn btn-principal" th:disabled="${venta.saldo.signum() > 0}">Emitir y enviar a SUNAT</button>
                 </form>
             </div>
         </div>

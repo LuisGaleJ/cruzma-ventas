@@ -38,7 +38,7 @@ class ComprobanteServiceTest {
 
     private Venta ventaConPago(Cliente cliente) {
         Venta v = Fixtures.venta(cliente);
-        v.registrarPago(new Pago(new BigDecimal("480.00"), MedioPago.YAPE));
+        v.registrarPago(new Pago(v.getSaldo(), MedioPago.YAPE));   // venta cancelada
         when(ventas.findById(1L)).thenReturn(Optional.of(v));
         return v;
     }
@@ -63,6 +63,15 @@ class ComprobanteServiceTest {
     void noEmiteFacturaAClienteConDni() {
         ventaConPago(Fixtures.cliente(TipoDocumento.DNI, "45871236", "María Castillo Ruiz"));
         assertThrows(IllegalArgumentException.class, () -> service.emitir(1L, TipoComprobante.FACTURA));
+        verifyNoInteractions(ose);
+    }
+
+    @Test
+    void noEmiteConSaldoPendiente() {
+        Venta v = Fixtures.venta(Fixtures.cliente(TipoDocumento.DNI, "45871236", "María Castillo Ruiz"));
+        v.registrarPago(new Pago(new BigDecimal("480.00"), MedioPago.YAPE));   // adelanto del 50 %
+        when(ventas.findById(1L)).thenReturn(Optional.of(v));
+        assertThrows(IllegalStateException.class, () -> service.emitir(1L, TipoComprobante.BOLETA));
         verifyNoInteractions(ose);
     }
 
