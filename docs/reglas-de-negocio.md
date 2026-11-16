@@ -21,6 +21,7 @@ Cada regla indica dónde está implementada y cómo se verifica.
 | 15 | Un texto que empieza con `= + - @` no se ejecuta como fórmula al exportar | Seguridad | `DatosSeguros`, `ExcelExportador`, `CsvExportador` | `ExportadoresTest` |
 | 16 | No se emite factura a un cliente con DNI ni comprobante sin pago | SUNAT / Empresa | `ComprobanteService.emitir` | `ComprobanteServiceTest` |
 | 17 | Una cotización vencida o ya convertida no se convierte en venta | Empresa | `CotizacionService.convertirAVenta` | `CotizacionServiceTest` |
+| 18 | Si el producto se cobra por M, ML, M2 o M3, el subtotal del ítem es precio x cantidad x metrado; las medidas son obligatorias y se aceptan como valor directo (`5`) o largo x alto (`3.20 x 0.90`) | Empresa | `Metrado.calcular`, `DetalleCotizacion` | `MetradoTest` |
 
 ## Cómo se informan los errores
 
