@@ -14,10 +14,11 @@
         <section class="hoja">
             <p th:if="${#lists.isEmpty(clientes)}" class="text-secondary m-0">No se encontraron clientes. Regístralo con el botón «Nuevo cliente».</p>
             <table th:unless="${#lists.isEmpty(clientes)}" class="table" id="tablaClientes">
-                <thead><tr><th>Documento</th><th>Nombre o razón social</th><th>Teléfono</th><th>Correo</th><th class="sin-orden"></th></tr></thead>
+                <thead><tr><th>Tipo</th><th>N.° de documento</th><th>Nombre o razón social</th><th>Teléfono</th><th>Correo</th><th class="sin-orden"></th></tr></thead>
                 <tbody>
                 <tr th:each="c : ${clientes}">
-                    <td th:text="${c.tipoDoc} + ' ' + ${c.numDoc}">doc</td>
+                    <td th:text="${c.tipoDoc}">DNI</td>
+                    <td th:text="${c.numDoc}">45871236</td>
                     <td th:text="${c.razonSocial}">nombre</td>
                     <td th:text="${c.telefono}">tel</td>
                     <td th:text="${c.email}">correo</td>
@@ -126,7 +127,7 @@
             abrir(btn.dataset);                   // data-num-doc llega como dataset.numDoc
         });
 
-        cruzmaTabla('#tablaClientes', { order: [ [1, 'asc'] ] });   // ordenado por nombre
+        cruzmaTabla('#tablaClientes', { order: [ [2, 'asc'] ] });   // ordenado por nombre (tercera columna)
 
         // Teléfono y número de documento: se borra al instante cualquier carácter que no sea dígito
         // (incluido lo pegado). La validación real está en el servidor, en Cliente.
