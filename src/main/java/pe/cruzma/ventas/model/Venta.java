@@ -81,8 +81,17 @@ public class Venta {
         v.cliente = cot.getCliente();
         v.usuario = usuario;
         v.cotizacion = cot;
-        for (DetalleCotizacion d : cot.getDetalles()) {
-            v.agregarDetalle(new DetalleVenta(d.getProducto(), d.getCantidad(), d.getPrecio(), d.getSubtotal()));
+        // El descuento global se reparte entre los ítems para que su suma sea igual al total
+        // (el último ítem absorbe la diferencia de redondeo).
+        List<DetalleCotizacion> items = cot.getDetalles();
+        BigDecimal acumulado = BigDecimal.ZERO;
+        for (int i = 0; i < items.size(); i++) {
+            DetalleCotizacion d = items.get(i);
+            BigDecimal importe = i == items.size() - 1
+                    ? cot.getTotal().subtract(acumulado)
+                    : Descuento.aplicar(d.getSubtotal(), cot.getDescuento());
+            acumulado = acumulado.add(importe);
+            v.agregarDetalle(new DetalleVenta(d.getProducto(), d.getCantidad(), d.getPrecio(), importe));
         }
         v.total = cot.getTotal();
         v.saldo = v.total;

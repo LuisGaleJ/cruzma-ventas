@@ -43,6 +43,7 @@ CREATE TABLE cotizacion (
   fecha DATE NOT NULL,
   fecha_vencimiento DATE NOT NULL,
   estado ENUM('PENDIENTE','APROBADA','RECHAZADA','VENCIDA') NOT NULL,
+  descuento DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (descuento BETWEEN 0 AND 100),
   total DECIMAL(12,2) NOT NULL,
   id_cliente INT NOT NULL,
   id_usuario INT NOT NULL,
@@ -57,6 +58,7 @@ CREATE TABLE detalle_cotizacion (
   cantidad INT NOT NULL CHECK (cantidad > 0),
   medidas VARCHAR(100),
   precio DECIMAL(10,2) NOT NULL,
+  descuento DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (descuento BETWEEN 0 AND 100),
   subtotal DECIMAL(12,2) NOT NULL,
   FOREIGN KEY (id_cotizacion) REFERENCES cotizacion(id_cotizacion) ON DELETE CASCADE,
   FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
@@ -172,6 +174,7 @@ CREATE TABLE IF NOT EXISTS cotizacion_aud (
   fecha DATE,
   fecha_vencimiento DATE,
   estado VARCHAR(10),
+  descuento DECIMAL(5,2),
   total DECIMAL(12,2),
   id_cliente INT,
   id_usuario INT,

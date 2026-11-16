@@ -113,3 +113,8 @@ div.dt-container .page-link { color: var(--pavonado); }
 
 /* Usuarios: botones de acción en una sola línea */
 .acciones-usuario form { display: inline; }
+
+/* Cotización: resumen con descuento global */
+.resumen-cotizacion { width: 360px; max-width: 100%; }
+.resumen-cotizacion td { padding: 3px 6px; vertical-align: middle; }
+.resumen-cotizacion .input-group { width: 110px; }

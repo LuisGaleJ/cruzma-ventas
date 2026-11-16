@@ -66,20 +66,23 @@ public class ComprobanteService {
     /**
      * CU08 Emitir comprobante electrónico (RF09, RF11).
      * <p>
-     * Precondición: la venta tiene al menos un pago y no tiene otro comprobante vigente.
+     * Precondición: la venta está cancelada (saldo cero) y no tiene otro comprobante vigente.
      *
      * @param idVenta venta a facturar
      * @param tipo    {@code FACTURA} (solo clientes con RUC) o {@code BOLETA}
      * @return la respuesta del OSE
      * @throws IllegalArgumentException si la venta no existe o el tipo no corresponde al cliente
-     * @throws IllegalStateException    si la venta está anulada, no tiene pagos o ya tiene comprobante
+     * @throws IllegalStateException    si la venta está anulada, tiene saldo pendiente o ya tiene comprobante
      */
     @Transactional
     public RespuestaOSE emitir(Long idVenta, TipoComprobante tipo) {
         Venta v = ventas.findById(idVenta).orElseThrow(() -> new IllegalArgumentException("Venta no encontrada"));
         if (tipo == TipoComprobante.NOTA_CREDITO) throw new IllegalArgumentException("La nota de crédito se genera al anular");
         if (v.getEstado() == EstadoVenta.ANULADA) throw new IllegalStateException("La venta está anulada");
-        if (v.getPagos().isEmpty()) throw new IllegalStateException("Registra al menos un adelanto antes de emitir el comprobante");
+        if (v.getSaldo().signum() > 0) {
+            throw new IllegalStateException("La venta tiene un saldo pendiente de S/ " + v.getSaldo()
+                    + ": registra el pago total antes de emitir el comprobante");
+        }
         if (v.tieneComprobanteVigente()) throw new IllegalStateException("La venta ya tiene un comprobante aceptado");
         if (tipo == TipoComprobante.FACTURA && v.getCliente().getTipoDoc() != TipoDocumento.RUC) {
             throw new IllegalArgumentException("Para emitir factura el cliente debe tener RUC; emite una boleta");

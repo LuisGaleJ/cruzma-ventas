@@ -55,6 +55,7 @@ public final class CamposAuditados {
                     campo("Estado", Cotizacion.class, Cotizacion::getEstado),
                     campo("Fecha", Cotizacion.class, Cotizacion::getFecha),
                     campo("Vencimiento", Cotizacion.class, Cotizacion::getFechaVencimiento),
+                    campo("Descuento global %", Cotizacion.class, Cotizacion::getDescuento),
                     campo("Total", Cotizacion.class, Cotizacion::getTotal)),
             de("Venta", Venta.class, Venta::getId, v -> "Venta N.° " + v.getId(),
                     campo("Estado", Venta.class, Venta::getEstado),

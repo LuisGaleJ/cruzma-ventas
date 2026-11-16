@@ -10,6 +10,7 @@ import pe.cruzma.ventas.repository.ProductoRepository;
 import pe.cruzma.ventas.repository.VentaRepository;
 import pe.cruzma.ventas.util.Auditoria;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -73,8 +74,7 @@ public class CotizacionService {
     /**
      * Registra una cotización con sus ítems (RF05).
      * <p>
-     * El precio de cada ítem puede ajustarse para aplicar un descuento; si viene
-     * vacío se usa el del catálogo. La cotización vence a los {@link #DIAS_VALIDEZ} días.
+     * Sin descuento global; ver {@link #crear(Long, List, Usuario, BigDecimal)}.
      *
      * @param idCliente cliente que solicita la cotización
      * @param items     filas del formulario; las que no tienen producto se ignoran
@@ -84,10 +84,32 @@ public class CotizacionService {
      */
     @Transactional
     public Cotizacion crear(Long idCliente, List<ItemCotizacionForm> items, Usuario vendedor) {
+        return crear(idCliente, items, vendedor, BigDecimal.ZERO);
+    }
+
+    /**
+     * Registra una cotización con sus ítems y descuentos (RF05).
+     * <p>
+     * Si el precio de un ítem viene vacío se usa el del catálogo. Cada ítem puede llevar un
+     * descuento en porcentaje y la cotización un descuento global. Ningún porcentaje, ni el
+     * descuento total efectivo, puede superar el máximo del rol ({@link Descuento#maximo(Usuario)}).
+     * La cotización vence a los {@link #DIAS_VALIDEZ} días.
+     *
+     * @param idCliente       cliente que solicita la cotización
+     * @param items           filas del formulario; las que no tienen producto se ignoran
+     * @param vendedor        usuario que cotiza
+     * @param descuentoGlobal descuento sobre la suma de ítems, en porcentaje; {@code null} es 0
+     * @return la cotización guardada
+     * @throws IllegalArgumentException si falta el cliente, no hay ítems, un dato no es válido o el descuento supera el máximo
+     * @since 0.6.0
+     */
+    @Transactional
+    public Cotizacion crear(Long idCliente, List<ItemCotizacionForm> items, Usuario vendedor, BigDecimal descuentoGlobal) {
         if (idCliente == null) throw new IllegalArgumentException("Elige un cliente");
         List<ItemCotizacionForm> validos = items.stream().filter(i -> i.productoId() != null).toList();
         if (validos.isEmpty()) throw new IllegalArgumentException("Agrega al menos un producto o servicio");
 
+        BigDecimal maximo = Descuento.maximo(vendedor);
         Cotizacion c = new Cotizacion();
         c.setCliente(clientes.findById(idCliente).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado")));
         c.setUsuario(vendedor);
@@ -96,9 +118,17 @@ public class CotizacionService {
         for (ItemCotizacionForm i : validos) {
             Producto p = productos.findById(i.productoId()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
             int cantidad = i.cantidad() == null ? 1 : i.cantidad();
-            c.agregarDetalle(new DetalleCotizacion(p, cantidad, i.medidas(), i.precio() != null ? i.precio() : p.getPrecioUnitario()));
+            BigDecimal dItem = Descuento.porcentaje(i.descuento());
+            if (dItem.compareTo(maximo) > 0) throw new IllegalArgumentException(excede(maximo));
+            c.agregarDetalle(new DetalleCotizacion(p, cantidad, i.medidas(),
+                    i.precio() != null ? i.precio() : p.getPrecioUnitario(), dItem));
         }
+        c.setDescuento(descuentoGlobal);
+        if (c.getDescuento().compareTo(maximo) > 0) throw new IllegalArgumentException(excede(maximo));
         c.calcularTotal();
+        if (c.getDescuentoEfectivo().compareTo(maximo) > 0) {
+            throw new IllegalArgumentException("El descuento total (" + c.getDescuentoEfectivo() + " %) supera el máximo de tu rol: " + maximo + " %");
+        }
         c.setNumero("COT-" + LocalDate.now().getYear() + "-" + String.format("%04d", cotizaciones.count() + 1));
         return cotizaciones.save(c);
     }
@@ -139,5 +169,11 @@ public class CotizacionService {
         Venta venta = ventas.save(Venta.desdeCotizacion(c, usuario));
         Auditoria.registrar(usuario.getUsername(), "CONVERTIR_EN_VENTA", c.getNumero() + " total=" + c.getTotal());
         return venta;
+    }
+
+    private static String excede(BigDecimal maximo) {
+        return maximo.signum() == 0
+                ? "Tu rol no puede aplicar descuentos"
+                : "El descuento máximo para tu rol es " + maximo.stripTrailingZeros().toPlainString() + " %";
     }
 }

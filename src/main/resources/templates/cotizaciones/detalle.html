@@ -35,7 +35,8 @@
             <p class="mb-3"><strong>Fecha:</strong> <span th:text="${#temporals.format(cot.fecha, 'dd/MM/yyyy')}"></span>
                 · <strong>Válida hasta:</strong> <span th:text="${#temporals.format(cot.fechaVencimiento, 'dd/MM/yyyy')}"></span></p>
             <table class="table">
-                <thead><tr><th>Cant.</th><th>Descripción</th><th>Medidas</th><th class="num">P. unit.</th><th class="num">Importe</th></tr></thead>
+                <thead><tr><th>Cant.</th><th>Descripción</th><th>Medidas</th><th class="num">P. unit.</th>
+                    <th class="num" th:if="${cot.tieneDescuentoPorItem}">Desc.</th><th class="num">Importe</th></tr></thead>
                 <tbody>
                 <tr th:each="d : ${cot.detalles}">
                     <td th:text="${d.cantidad}">1</td>
@@ -44,11 +45,18 @@
                         <div class="text-secondary small" th:if="${d.porMedida and d.metrado != null}"
                              th:text="'= ' + ${d.metrado} + ' ' + ${#strings.toLowerCase(d.producto.unidad)} + ' por unidad'">= 2.88 m2</div></td>
                     <td class="num" th:text="${#numbers.formatDecimal(d.precio, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:if="${cot.tieneDescuentoPorItem}"
+                        th:text="${d.descuento.signum() > 0} ? ${#numbers.formatDecimal(d.descuento, 1, 'COMMA', 2, 'POINT')} + ' %' : '—'">0 %</td>
                     <td class="num" th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">0</td>
                 </tr>
                 </tbody>
             </table>
             <table class="totales">
+                <tr th:if="${cot.descuento.signum() > 0}"><td>Subtotal</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(cot.subtotalItems, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
+                <tr th:if="${cot.descuento.signum() > 0}">
+                    <td th:text="'Descuento ' + ${#numbers.formatDecimal(cot.descuento, 1, 'COMMA', 2, 'POINT')} + ' %'">Descuento</td>
+                    <td class="num" th:text="'- ' + ${#numbers.formatDecimal(cot.montoDescuentoGlobal, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
                 <tr class="fw-semibold"><td>Total S/ (incluye IGV)</td><td class="num" th:text="${#numbers.formatDecimal(cot.total, 1, 'COMMA', 2, 'POINT')}">0</td></tr>
             </table>
             <p class="pie">Forma de pago: 50 % de adelanto y saldo contra entrega. Precios sujetos a variación del acero después de la fecha de validez.

@@ -41,6 +41,10 @@ public class DetalleCotizacion {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
+    /** Descuento del ítem en porcentaje (0 a 100). */
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal descuento = BigDecimal.ZERO;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
@@ -62,6 +66,21 @@ public class DetalleCotizacion {
      * @throws IllegalArgumentException si la cantidad, el precio o las medidas no son válidos
      */
     public DetalleCotizacion(Producto producto, int cantidad, String medidas, BigDecimal precio) {
+        this(producto, cantidad, medidas, precio, BigDecimal.ZERO);
+    }
+
+    /**
+     * Crea un ítem con descuento: subtotal = precio x cantidad x metrado x (1 - descuento / 100).
+     *
+     * @param producto  producto o servicio cotizado
+     * @param cantidad  unidades, mayor a cero
+     * @param medidas   medidas del trabajo; obligatorias si la unidad es M, ML, M2 o M3
+     * @param precio    precio unitario con IGV, no negativo
+     * @param descuento porcentaje de descuento del ítem (0 a 100); {@code null} es 0
+     * @throws IllegalArgumentException si algún dato no es válido
+     * @since 0.6.0
+     */
+    public DetalleCotizacion(Producto producto, int cantidad, String medidas, BigDecimal precio, BigDecimal descuento) {
         checkArgument(cantidad > 0, "La cantidad debe ser mayor a cero");
         checkArgument(precio != null && precio.signum() >= 0, "El precio no puede ser negativo");
         this.producto = producto;
@@ -74,8 +93,10 @@ public class DetalleCotizacion {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(producto.getDescripcion() + ": " + e.getMessage());
         }
-        this.subtotal = precio.multiply(BigDecimal.valueOf(cantidad)).multiply(metrado)
+        this.descuento = Descuento.porcentaje(descuento);
+        BigDecimal bruto = precio.multiply(BigDecimal.valueOf(cantidad)).multiply(metrado)
                 .setScale(2, java.math.RoundingMode.HALF_UP);
+        this.subtotal = Descuento.aplicar(bruto, this.descuento);
     }
 
     /** {@return identificador} */
@@ -111,6 +132,14 @@ public class DetalleCotizacion {
             return null;
         }
     }
-    /** {@return subtotal (precio por cantidad por metrado)} */
+    /** {@return descuento del ítem en porcentaje} */
+    public BigDecimal getDescuento() { return descuento; }
+    /** {@return importe del ítem antes de su descuento (precio por cantidad por metrado)} */
+    public BigDecimal getBruto() {
+        BigDecimal m = getMetrado();
+        return m == null ? subtotal
+                : precio.multiply(BigDecimal.valueOf(cantidad)).multiply(m).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+    /** {@return subtotal con el descuento del ítem (precio por cantidad por metrado, menos descuento)} */
     public BigDecimal getSubtotal() { return subtotal; }
 }
