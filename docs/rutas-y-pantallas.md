@@ -13,6 +13,7 @@
 | POST | `/usuarios/{id}/estado` | `UsuarioController.cambiarEstado` | redirección | ADMIN | RF02 |
 | GET | `/auditoria?entidad=&id=` | `AuditoriaController.historial` | `auditoria/historial` | ADMIN | Auditoría de datos |
 | GET | `/clientes?q=&editar=` | `ClienteController.listar` | `clientes/lista` | Autenticado | RF03 |
+| GET | `/clientes/consulta?tipo=&numero=` | `ClienteController.consultar` (JSON: RENIEC/SUNAT vía Decolecta) | JSON | Autenticado | RF03 |
 | POST | `/clientes/guardar` | `ClienteController.guardar` | redirección | Autenticado | RF03 |
 | GET | `/productos?tipo=&editar=` | `ProductoController.listar` | `productos/lista` | Autenticado | RF04 |
 | POST | `/productos/guardar` | `ProductoController.guardar` | redirección | ADMIN | RF04 |

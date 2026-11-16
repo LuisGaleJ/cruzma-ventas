@@ -19,6 +19,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
   Las medidas se escriben como área o longitud (`5`) o como largo x alto (`3.20 x 0.90`); la pantalla muestra el metrado
   calculado y el servidor lo vuelve a calcular (clase `Metrado`). La venta conserva el importe de la cotización.
 - Corregido: con una sola fila, una medida con coma (`3,20 x 0,90`) ya no se parte en dos valores.
+- **Consulta de DNI y RUC** en la ventana de cliente: botón **Buscar** (y búsqueda automática al completar los dígitos)
+  que trae el nombre de RENIEC o la razón social y dirección de SUNAT con la API REST de Decolecta.
+  Interfaz `ConsultaDocumentoService` + `DecolectaConsultaService` (token en la variable `DECOLECTA_TOKEN`, caché de 1 día con Guava),
+  y endpoint JSON propio `GET /clientes/consulta`.
 - P7 Venta: **Registrar pago** en ventana emergente, con el saldo pendiente a la vista y el atajo «Pagar el saldo completo».
 - El teléfono del cliente solo acepta números (6 a 9 dígitos): validado en el servidor y filtrado al escribir.
 
