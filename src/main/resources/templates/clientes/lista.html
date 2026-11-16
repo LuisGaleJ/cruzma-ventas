@@ -56,8 +56,15 @@
                             <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DNI</option>
                         </select></div>
                     <div class="col-8"><label class="form-label" for="numDoc">Número <span class="obligatorio">*</span></label>
-                        <input th:field="*{numDoc}" class="form-control solo-digitos" inputmode="numeric" maxlength="11" th:errorclass="is-invalid">
-                        <div class="invalid-feedback" th:errors="*{numDoc}"></div></div>
+                        <div class="input-group has-validation">
+                            <input th:field="*{numDoc}" class="form-control solo-digitos" inputmode="numeric" maxlength="11"
+                                   th:errorclass="is-invalid" aria-describedby="estadoConsulta">
+                            <button type="button" class="btn btn-outline-secondary" id="btnConsultar"
+                                    th:data-url="@{/clientes/consulta}" title="Buscar en RENIEC o SUNAT">Buscar</button>
+                            <div class="invalid-feedback" th:errors="*{numDoc}"></div>
+                        </div></div>
+                    <div class="col-12"><div class="form-text" id="estadoConsulta" aria-live="polite">
+                        Escribe el DNI o RUC y pulsa Buscar para traer el nombre de RENIEC o SUNAT.</div></div>
                 </div>
                 <div class="mb-3"><label class="form-label" for="razonSocial">Nombre o razón social <span class="obligatorio">*</span></label>
                     <input th:field="*{razonSocial}" class="form-control" th:errorclass="is-invalid">
@@ -128,6 +135,49 @@
                 var limpio = el.value.replace(/\D/g, '');
                 if (limpio !== el.value) el.value = limpio;
             });
+        });
+
+        // Consulta RENIEC (DNI) o SUNAT (RUC) a través de /clientes/consulta (API de Decolecta en el servidor)
+        var btnConsultar = document.getElementById('btnConsultar');
+        var estado = document.getElementById('estadoConsulta');
+        var LARGO = { DNI: 8, RUC: 11 };
+
+        function avisar(texto, tipo) {
+            estado.textContent = texto;
+            estado.className = 'form-text' + (tipo === 'error' ? ' text-danger' : tipo === 'ok' ? ' text-success' : '');
+        }
+
+        function consultar() {
+            var tipo = form.elements['tipoDoc'].value;
+            var numero = form.elements['numDoc'].value.trim();
+            if (numero.length !== LARGO[tipo]) {
+                avisar('El ' + tipo + ' debe tener ' + LARGO[tipo] + ' dígitos.', 'error');
+                return;
+            }
+            btnConsultar.disabled = true;
+            avisar('Buscando en ' + (tipo === 'DNI' ? 'RENIEC' : 'SUNAT') + '…');
+            var url = btnConsultar.dataset.url + '?tipo=' + encodeURIComponent(tipo) + '&numero=' + encodeURIComponent(numero);
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, datos: j }; }); })
+                .then(function (res) {
+                    if (!res.ok) { avisar(res.datos.mensaje || 'No se pudo consultar.', 'error'); return; }
+                    form.elements['razonSocial'].value = res.datos.nombre;
+                    if (res.datos.direccion) form.elements['direccion'].value = res.datos.direccion;
+                    avisar('Datos traídos de ' + (tipo === 'DNI' ? 'RENIEC' : 'SUNAT') + '. Revísalos antes de guardar.', 'ok');
+                })
+                .catch(function () { avisar('No se pudo conectar. Completa los datos a mano.', 'error'); })
+                .finally(function () { btnConsultar.disabled = false; });
+        }
+
+        btnConsultar.addEventListener('click', consultar);
+        // Al completar los dígitos de un cliente nuevo sin nombre, busca solo (ahorra un clic)
+        form.elements['numDoc'].addEventListener('input', function () {
+            var tipo = form.elements['tipoDoc'].value;
+            if (!form.elements['id'].value && !form.elements['razonSocial'].value
+                && form.elements['numDoc'].value.length === LARGO[tipo]) consultar();
+        });
+        modalEl.addEventListener('show.bs.modal', function () {
+            avisar('Escribe el DNI o RUC y pulsa Buscar para traer el nombre de RENIEC o SUNAT.');
         });
 
         modalEl.addEventListener('shown.bs.modal', function () { form.elements['numDoc'].focus(); });
