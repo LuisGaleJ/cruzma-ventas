@@ -2,6 +2,8 @@
  * Tablas con DataTables (búsqueda, orden por columna y paginación en el navegador).
  * Configuración común en español para todas las pantallas del sistema.
  * Uso: cruzmaTabla('#tablaClientes', { order: [[1, 'asc']] });
+ * En pantallas angostas (celular) la extensión Responsive oculta las columnas que no entran y las muestra
+ * al tocar la fila. Siempre quedan visibles la primera columna y la última (botones de acción).
  */
 (function () {
     'use strict';
@@ -39,7 +41,12 @@
             language: ESPANOL,
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
-            columnDefs: [{ targets: 'sin-orden', orderable: false, searchable: false }]
+            responsive: true,
+            columnDefs: [
+                { targets: 'sin-orden', orderable: false, searchable: false },
+                { targets: 0, responsivePriority: 1 },     // primera columna: siempre visible
+                { targets: -1, responsivePriority: 2 }     // última columna (acciones): siempre visible
+            ]
         };
         var config = Object.assign(comunes, opciones || {});
         return typeof window.DataTable !== 'undefined' ? new window.DataTable(tabla, config) : jq(tabla).DataTable(config);

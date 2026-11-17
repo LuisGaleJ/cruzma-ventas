@@ -30,23 +30,23 @@
             <section class="hoja">
                 <h2>Productos y servicios</h2>
                 <div class="table-responsive">
-                <table class="table" id="items">
+                <table class="table tabla-items" id="items">
                     <thead><tr><th style="min-width:260px">Producto o servicio</th><th style="width:90px">Cant.</th><th>Medidas</th><th style="width:130px">Precio S/</th><th style="width:100px">Desc. %</th><th class="num" style="width:120px">Subtotal</th><th></th></tr></thead>
                     <tbody>
                     <tr class="item">
-                        <td><select name="productoId" class="form-select producto" aria-label="Producto">
+                        <td class="col-producto" data-label="Producto o servicio"><select name="productoId" class="form-select producto" aria-label="Producto">
                             <option value="">Elige</option>
                             <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario},data-unidad=${p.unidad}"
                                     th:text="${p.descripcion} + ' (' + ${p.unidad} + ')'">producto</option>
                         </select></td>
-                        <td><input name="cantidad" type="number" min="1" value="1" class="form-control cantidad" aria-label="Cantidad"></td>
-                        <td><input name="medidas" class="form-control medidas" placeholder="Opcional" aria-label="Medidas">
+                        <td data-label="Cantidad"><input name="cantidad" type="number" min="1" value="1" class="form-control cantidad" aria-label="Cantidad"></td>
+                        <td data-label="Medidas"><input name="medidas" class="form-control medidas" placeholder="Opcional" aria-label="Medidas">
                             <div class="form-text metrado"></div></td>
-                        <td><input name="precio" type="number" min="0" step="0.01" class="form-control precio" aria-label="Precio"></td>
-                        <td><input name="descuento" type="number" min="0" th:max="${descuentoMaximo}" step="0.5" placeholder="0"
+                        <td data-label="Precio S/"><input name="precio" type="number" min="0" step="0.01" class="form-control precio" aria-label="Precio"></td>
+                        <td data-label="Desc. %"><input name="descuento" type="number" min="0" th:max="${descuentoMaximo}" step="0.5" placeholder="0"
                                    class="form-control descuento" aria-label="Descuento del ítem en porcentaje"></td>
-                        <td class="num subtotal">0.00</td>
-                        <td><button type="button" class="btn btn-sm btn-outline-secondary quitar" aria-label="Quitar ítem">Quitar</button></td>
+                        <td class="num subtotal" data-label="Subtotal">0.00</td>
+                        <td class="col-quitar"><button type="button" class="btn btn-sm btn-outline-secondary quitar" aria-label="Quitar ítem">Quitar</button></td>
                     </tr>
                     </tbody>
                 </table>

@@ -107,6 +107,20 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
   .documento .totales { width: 100%; }
   .indicadores { grid-template-columns: 1fr 1fr; }
   .encabezado { flex-direction: column; align-items: flex-start; }
+  /* Ítems de la cotización: cada fila se muestra como una tarjeta con sus campos rotulados */
+  .table-responsive:has(> .tabla-items) { overflow: visible; }
+  .tabla-items thead { display: none; }
+  .tabla-items, .tabla-items > tbody { display: block; }
+  .tabla-items > tbody > tr.item { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px;
+    padding: 14px 0; border-bottom: 1px solid var(--acero-200); }
+  .tabla-items > tbody > tr.item > td { display: block; padding: 0; border: 0; background: none; box-shadow: none; }
+  .tabla-items > tbody > tr.item > td[data-label]::before { content: attr(data-label); display: block;
+    font-size: 12.5px; color: var(--acero-500); margin-bottom: 4px; }
+  .tabla-items > tbody > tr.item > td.col-producto { grid-column: 1 / -1; }
+  .tabla-items > tbody > tr.item > td.subtotal { text-align: left; font-weight: 600; font-size: 17px; align-self: end; }
+  .tabla-items > tbody > tr.item > td.col-quitar { align-self: end; text-align: right; }
+  .tabla-items .form-control, .tabla-items .form-select { font-size: 16px; } /* 16px evita el zoom automático en iPhone */
+  .resumen-cotizacion { width: 100%; }
 }
 
 @media print {
