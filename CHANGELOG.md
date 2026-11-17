@@ -5,6 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 ## [Sin publicar]
 
 ### Agregado
+- **Versión para celular**: menú hamburguesa (☰) en pantallas de hasta 900 px, con barra fija arriba; tablas que se
+  deslizan de lado y cotización/comprobante en una columna.
+- **PWA (app instalable)**: `manifest.json`, íconos y service worker (`sw.js`). Desde Chrome o Safari se puede
+  «Agregar a la pantalla de inicio» y el sistema se abre a pantalla completa con su ícono. Solo se guardan en caché
+  CSS, JS e íconos; las páginas con datos siempre vienen del servidor. Sin internet se muestra `offline.html`.
+
+### Corregido
+- `Dockerfile`: crea la carpeta de logs con permiso para el usuario del contenedor (antes el arranque fallaba si no se
+  definía `LOG_DIR`).
+
+### Agregado
 - **Publicación en Railway**: guía `docs/despliegue-railway.md` (Dockerfile, MySQL en red privada, variables y dominio público).
 - **Publicación en Azure** (Azure for Students): guía `docs/despliegue-azure.md`, flujo de GitHub Actions
   `publicar-azure.yml` (cada merge a `main` compila, prueba y publica el JAR en App Service) y script

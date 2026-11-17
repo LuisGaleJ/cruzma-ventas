@@ -1,0 +1,17 @@
+{
+  "name": "Grupo Cruzma · Ventas y facturación",
+  "short_name": "Cruzma",
+  "description": "Cotizaciones, ventas, cobros y comprobantes electrónicos de Grupo Cruzma.",
+  "lang": "es-PE",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1f272e",
+  "theme_color": "#1f272e",
+  "icons": [
+    { "src": "/img/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

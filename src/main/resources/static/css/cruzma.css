@@ -29,7 +29,13 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
 .menu a.activo { background: var(--pavonado); color: var(--blanco); }
 .menu .usuario { margin-top: auto; padding: 12px; border-top: 1px solid var(--acero-700); font-size: 13px; }
 .menu .usuario button { background: none; border: 0; color: var(--acero-200); padding: 0; text-decoration: underline; }
-.contenido { padding: 32px 40px; max-width: 1180px; width: 100%; }
+.menu-enlaces { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.menu-boton { display: none; background: none; border: 1px solid var(--acero-700); border-radius: var(--radio);
+  color: var(--blanco); padding: 6px; line-height: 0; }
+.menu-boton svg path { stroke: currentColor; stroke-width: 2; stroke-linecap: round; fill: none; }
+.menu-boton .icono-cerrar, .menu.abierto .menu-boton .icono-abrir { display: none; }
+.menu.abierto .menu-boton .icono-cerrar { display: inline; }
+.contenido { padding: 32px 40px; max-width: 1180px; width: 100%; min-width: 0; }
 .encabezado { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
 .encabezado h1 { font-size: 26px; font-weight: 600; margin: 0; }
 .encabezado p { color: var(--acero-500); margin: 4px 0 0; }
@@ -78,10 +84,27 @@ body { background: var(--acero-100); color: var(--acero-900); font-size: 15px; }
 .login h1 { font-size: 22px; font-weight: 600; }
 
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
-  .menu { flex-direction: row; flex-wrap: wrap; padding: 12px; }
-  .menu .marca, .menu .usuario { display: none; }
+  /* Una columna: la barra del menú solo ocupa su alto y el contenido toma el resto */
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
+  /* Menú hamburguesa: barra fija arriba con la marca y el botón; las opciones se despliegan al tocarlo */
+  .menu { position: sticky; top: 0; z-index: 1030; padding: 0; gap: 0; align-self: start; }
+  .menu-barra { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; }
+  .menu .marca { margin: 0; font-size: 16px; }
+  .menu .marca small { font-size: 12px; }
+  .menu-boton { display: inline-block; }
+  .menu-enlaces { display: none; padding: 4px 12px 12px; border-top: 1px solid var(--acero-700);
+    max-height: calc(100vh - 60px); overflow-y: auto; }
+  .menu.abierto .menu-enlaces { display: flex; }
+  .menu a { padding: 12px; }
+  .menu .usuario { margin-top: 8px; }
   .contenido { padding: 20px 16px; }
+  /* Tablas: se deslizan de lado en lugar de salirse de la pantalla */
+  .contenido :has(> table.table), .dt-layout-table { overflow-x: auto; }
+  /* Cotización y comprobante en pantalla: una sola columna */
+  .documento { padding: 20px 16px; }
+  .documento .cabecera { flex-direction: column; }
+  .documento .recuadro { min-width: 0; }
+  .documento .totales { width: 100%; }
   .indicadores { grid-template-columns: 1fr 1fr; }
   .encabezado { flex-direction: column; align-items: flex-start; }
 }
