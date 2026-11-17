@@ -21,7 +21,7 @@
         <section class="hoja">
             <p th:if="${#lists.isEmpty(productos)}" class="text-secondary m-0">No hay productos ni servicios registrados.</p>
             <table th:unless="${#lists.isEmpty(productos)}" class="table" id="tablaProductos">
-                <thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Unidad</th><th class="num">Precio S/</th><th sec:authorize="hasRole('ADMIN')" class="sin-orden"></th></tr></thead>
+                <thead><tr><th data-priority="4">Código</th><th data-priority="1">Descripción</th><th data-priority="5">Tipo</th><th data-priority="6">Unidad</th><th data-priority="2" class="num">Precio S/</th><th data-priority="3" sec:authorize="hasRole('ADMIN')" class="sin-orden"></th></tr></thead>
                 <tbody>
                 <tr th:each="p : ${productos}">
                     <td th:text="${p.codigo}">cod</td>

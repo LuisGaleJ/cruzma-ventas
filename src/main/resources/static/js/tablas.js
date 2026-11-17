@@ -3,7 +3,8 @@
  * Configuración común en español para todas las pantallas del sistema.
  * Uso: cruzmaTabla('#tablaClientes', { order: [[1, 'asc']] });
  * En pantallas angostas (celular) la extensión Responsive oculta las columnas que no entran y las muestra
- * al tocar la fila. Siempre quedan visibles la primera columna y la última (botones de acción).
+ * al tocar la fila. Qué columnas se quedan lo decide cada tabla con data-priority en su <th>
+ * (1 = la más importante, se oculta al último).
  */
 (function () {
     'use strict';
@@ -42,11 +43,7 @@
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
             responsive: true,
-            columnDefs: [
-                { targets: 'sin-orden', orderable: false, searchable: false },
-                { targets: 0, responsivePriority: 1 },     // primera columna: siempre visible
-                { targets: -1, responsivePriority: 2 }     // última columna (acciones): siempre visible
-            ]
+            columnDefs: [{ targets: 'sin-orden', orderable: false, searchable: false }]
         };
         var config = Object.assign(comunes, opciones || {});
         return typeof window.DataTable !== 'undefined' ? new window.DataTable(tabla, config) : jq(tabla).DataTable(config);

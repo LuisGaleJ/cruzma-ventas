@@ -14,7 +14,7 @@
         <section class="hoja">
             <p th:if="${#lists.isEmpty(clientes)}" class="text-secondary m-0">No se encontraron clientes. Regístralo con el botón «Nuevo cliente».</p>
             <table th:unless="${#lists.isEmpty(clientes)}" class="table" id="tablaClientes">
-                <thead><tr><th>Tipo</th><th>N.° de documento</th><th>Nombre o razón social</th><th>Teléfono</th><th>Correo</th><th class="sin-orden"></th></tr></thead>
+                <thead><tr><th data-priority="4">Tipo</th><th data-priority="3">N.° de documento</th><th data-priority="1">Nombre o razón social</th><th data-priority="5">Teléfono</th><th data-priority="6">Correo</th><th data-priority="2" class="sin-orden"></th></tr></thead>
                 <tbody>
                 <tr th:each="c : ${clientes}">
                     <td th:text="${c.tipoDoc}">DNI</td>
