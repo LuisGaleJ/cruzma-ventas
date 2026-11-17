@@ -1,6 +1,7 @@
 package pe.cruzma.ventas.integration;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pe.cruzma.ventas.model.Cliente;
 import pe.cruzma.ventas.model.Comprobante;
@@ -19,6 +20,7 @@ import java.util.HexFormat;
  * usando cruzma.ose.url y cruzma.ose.token.
  */
 @Service
+@ConditionalOnProperty(name = "cruzma.ose.proveedor", havingValue = "simulado", matchIfMissing = true)
 public class OseSimuladoService implements ServicioFacturacionOSE {
 
     private final String urlOse;

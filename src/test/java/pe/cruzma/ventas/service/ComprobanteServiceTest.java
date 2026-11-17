@@ -100,7 +100,7 @@ class ComprobanteServiceTest {
         service.emitir(1L, TipoComprobante.BOLETA);
         Comprobante boleta = v.getComprobantes().get(0);
         when(comprobantes.findById(7L)).thenReturn(Optional.of(boleta));
-        when(ose.comunicarBaja(any(), any())).thenReturn(new RespuestaOSE(true, "baja1", "ok"));
+        when(ose.enviarNotaCredito(any(), any(), any())).thenReturn(new RespuestaOSE(true, "baja1", "ok"));
 
         service.anular(7L, "Cliente desistió");
 

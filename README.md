@@ -14,7 +14,7 @@ El sistema une en un solo flujo lo que hoy se hace en Excel, en cuaderno y en el
 | Framework | Spring Boot 3.3 (Web, Security, Data JPA, Validation) |
 | Vistas | Thymeleaf + Bootstrap 5.3 + DataTables 2.1 (tablas con búsqueda, orden y paginación) + CSS propio (`static/css/cruzma.css`) |
 | Base de datos | H2 en memoria (demo) o MySQL 8 (perfil `mysql`) |
-| Facturación electrónica | Interfaz `ServicioFacturacionOSE`; en el prototipo, `OseSimuladoService` |
+| Facturación electrónica | Interfaz `ServicioFacturacionOSE`: `OseSimuladoService` (por defecto) o `NubefactOseService` (API REST de Nubefact) |
 | Librerías de apoyo | Google Guava, Apache POI, Apache Commons Lang y Text, Logback |
 | Auditoría de datos | Hibernate Envers (historial de cambios en tablas `*_aud`) |
 | Pruebas | JUnit 5, Mockito y Spring Boot Test (30 pruebas) |
@@ -51,7 +51,23 @@ export DB_URL=jdbc:mysql://localhost:3306/cruzma_ventas DB_USER=cruzma_app DB_PA
 mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
-Variables del proveedor de facturación: `OSE_URL` y `OSE_TOKEN` (nunca dentro del código).
+Variables del proveedor de facturación: `OSE_PROVEEDOR` (`simulado` o `nubefact`), `OSE_URL` (RUTA) y `OSE_TOKEN` (nunca dentro del código).
+
+### Publicado en internet
+
+- **Railway** (usado): [`docs/despliegue-railway.md`](docs/despliegue-railway.md). Construye con el `Dockerfile`, MySQL en
+  la red privada y publicación automática en cada merge a `main`.
+- **Azure** (alternativa con Azure for Students): [`docs/despliegue-azure.md`](docs/despliegue-azure.md), con el flujo
+  `.github/workflows/publicar-azure.yml` (se omite mientras no exista la variable `AZURE_WEBAPP_NAME`).
+
+| Variable | Para qué |
+|----------|----------|
+| `CRUZMA_PUBLICO=true` | Cookie de sesión solo por HTTPS; no arranca con la contraseña de demostración |
+| `ADMIN_PASSWORD` | Contraseña inicial de los usuarios (obligatoria en internet, 10+ caracteres) |
+| `DEMO_DATOS` | `true` carga usuarios vendedor/caja, clientes y productos de ejemplo; `false`, solo `admin` |
+| `PORT` / `SERVER_PORT` | Puerto que asigna la plataforma (por defecto 8080) |
+
+> La contraseña `Cruzma2026` es solo para uso local: está publicada en este README.
 
 ## Arquitectura en capas
 
@@ -63,7 +79,7 @@ src/main/java/pe/cruzma/ventas
 ├── service/       Reglas de negocio y transacciones
 ├── repository/    Interfaces Spring Data JPA
 ├── model/         Entidades JPA y enumeraciones (mapean db/schema.sql)
-├── integration/   ServicioFacturacionOSE, RespuestaOSE y OseSimuladoService
+├── integration/   ServicioFacturacionOSE, OseSimuladoService, NubefactOseService y consulta DNI/RUC
 └── dto/           ItemCotizacionForm, FilaReporte, ResumenPanel
 src/main/resources
 ├── templates/     Vistas Thymeleaf
@@ -114,14 +130,20 @@ Flujo de una petición: `Controller` recibe el formulario → `Service` aplica l
 | Usuarios desactivados no ingresan | `UsuarioDetailsService` |
 | Credenciales del OSE fuera del código | `OSE_URL`, `OSE_TOKEN` |
 | Usuario de BD con mínimo privilegio | `db/schema.sql` (`cruzma_app`: SELECT, INSERT, UPDATE) |
+| Sin contraseña de demostración en internet; cookie solo HTTPS | `DataInitializer.validarClaveInicial`, `CRUZMA_PUBLICO` |
 | Historial de cambios en la BD (quién, cuándo, qué) | Hibernate Envers: `@Audited`, `revinfo`, `*_aud`, pantalla `/auditoria` |
 
 ## Integración con SUNAT
 
-El sistema depende de la interfaz `ServicioFacturacionOSE` (métodos `enviar` y `comunicarBaja`).
-En el prototipo, `OseSimuladoService` valida como lo haría el OSE (factura con RUC, documento válido, total > 0)
-y devuelve un CDR simulado. Para producción se crea otra implementación que llame a la API REST del proveedor
-elegido (por ejemplo Nubefact) con el XML UBL 2.1, sin cambiar controladores ni servicios.
+El sistema depende de la interfaz `ServicioFacturacionOSE` (métodos `enviar`, `enviarNotaCredito` y `comunicarBaja`).
+Hay dos implementaciones y se elige con `OSE_PROVEEDOR`:
+
+- `simulado` (por defecto): `OseSimuladoService` valida como lo haría el OSE (factura con RUC, documento válido,
+  total > 0) y devuelve un CDR simulado, sin internet.
+- `nubefact`: `NubefactOseService` envía el comprobante a la API JSON de Nubefact (RUTA en `OSE_URL`, TOKEN en
+  `OSE_TOKEN`). Con una cuenta de demostración usa las series de prueba `FFF1`/`BBB1` y no llega a SUNAT.
+
+Cambiar de proveedor no toca controladores ni servicios: es el principio abierto/cerrado de SOLID.
 
 ## Pruebas
 
@@ -145,7 +167,7 @@ bloqueo de login, tratamiento seguro de datos, exportación a Excel y CSV, y aud
 
 ## Pendiente para la versión final
 
-- Implementación real del OSE (XML UBL 2.1, firma digital, código QR en el PDF).
+- Pasar a producción con Nubefact: contrato, series reales y designación del PSE/OSE en SUNAT con la clave SOL.
 - PDF generado en servidor con JasperReports (hoy se usa la vista imprimible del navegador).
 
 ## Documentación

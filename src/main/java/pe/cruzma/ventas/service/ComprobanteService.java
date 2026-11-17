@@ -92,6 +92,7 @@ public class ComprobanteService {
         comprobantes.save(c);
         RespuestaOSE r = ose.enviar(c);
         c.marcarRespuesta(r.aceptado(), r.hashCdr());
+        c.registrarPdfOficial(r.enlacePdf());
         v.getComprobantes().add(c);
         if (r.aceptado()) {
             LOG.info("Comprobante {} aceptado por el OSE", c.getNumero());
@@ -122,8 +123,10 @@ public class ComprobanteService {
         Comprobante nc = new Comprobante(v, TipoComprobante.NOTA_CREDITO,
                 comprobantes.ultimoCorrelativo(TipoComprobante.NOTA_CREDITO.getSerie()) + 1, original.getTotal(), tasaIgv);
         comprobantes.save(nc);
-        RespuestaOSE r = ose.comunicarBaja(original, motivo == null || motivo.isBlank() ? "Anulación de la operación" : motivo);
+        RespuestaOSE r = ose.enviarNotaCredito(nc, original,
+                motivo == null || motivo.isBlank() ? "Anulación de la operación" : motivo);
         nc.marcarRespuesta(r.aceptado(), r.hashCdr());
+        nc.registrarPdfOficial(r.enlacePdf());
         if (r.aceptado()) {
             original.anular();
             v.setEstado(EstadoVenta.ANULADA);

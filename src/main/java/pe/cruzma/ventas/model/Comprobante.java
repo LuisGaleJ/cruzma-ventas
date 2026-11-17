@@ -114,6 +114,19 @@ public class Comprobante {
      */
     public void anular() { this.estadoSunat = EstadoSunat.ANULADO; }
 
+    /**
+     * Guarda el enlace al PDF oficial generado por el OSE, si lo hay.
+     *
+     * @param enlace URL del PDF; si es {@code null} se conserva la vista interna
+     * @since 0.6.0
+     */
+    public void registrarPdfOficial(String enlace) {
+        if (enlace != null && !enlace.isBlank()) this.rutaPdf = enlace;
+    }
+
+    /** {@return {@code true} si el PDF lo generó el OSE (enlace externo)} */
+    public boolean isPdfOficial() { return rutaPdf != null && rutaPdf.startsWith("http"); }
+
     /** {@return identificador} */
     public Long getId() { return id; }
     /** {@return venta a la que pertenece} */

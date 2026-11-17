@@ -24,4 +24,20 @@ public interface ServicioFacturacionOSE {
      * @return la respuesta del OSE
      */
     RespuestaOSE comunicarBaja(Comprobante comprobante, String motivo);
+
+    /**
+     * Envía la nota de crédito que anula un comprobante aceptado.
+     * <p>
+     * Por defecto comunica la baja del original; un OSE real envía la nota de crédito con la referencia
+     * al comprobante que modifica.
+     *
+     * @param notaCredito nota de crédito ya numerada
+     * @param original    factura o boleta que se anula
+     * @param motivo      motivo de la anulación
+     * @return respuesta del OSE
+     * @since 0.6.0
+     */
+    default RespuestaOSE enviarNotaCredito(Comprobante notaCredito, Comprobante original, String motivo) {
+        return comunicarBaja(original, motivo);
+    }
 }

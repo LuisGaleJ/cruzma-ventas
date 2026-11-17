@@ -1,5 +1,8 @@
 package pe.cruzma.ventas.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -10,17 +13,30 @@ import pe.cruzma.ventas.repository.*;
 import java.math.BigDecimal;
 
 /**
- * Carga datos de demostración la primera vez que arranca el sistema:
- * roles, un usuario por rol, clientes y el catálogo de productos de Grupo Cruzma.
- * Contraseña de todos los usuarios demo: Cruzma2026
+ * Carga los datos iniciales la primera vez que arranca el sistema (base sin roles):
+ * roles y usuario {@code admin}; si {@code cruzma.demo.datos=true}, también los usuarios
+ * {@code vendedor} y {@code caja}, clientes y el catálogo de productos de Grupo Cruzma.
+ * <p>
+ * La contraseña inicial viene de {@code ADMIN_PASSWORD}. En local, si no se define, es la de demostración
+ * ({@value #CLAVE_DEMO}). Cuando el sistema está publicado en internet ({@code CRUZMA_PUBLICO=true})
+ * no arranca con esa clave pública ni con una de menos de {@value #LARGO_MINIMO} caracteres.
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
+    /** Contraseña de demostración publicada en el README; solo para uso local. */
+    public static final String CLAVE_DEMO = "Cruzma2026";
+    /** Largo mínimo de la contraseña inicial cuando el sistema está en internet. */
+    public static final int LARGO_MINIMO = 10;
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
+
     private final RolRepository roles;
     private final UsuarioRepository usuarios;
     private final ClienteRepository clientes;
     private final ProductoRepository productos;
     private final PasswordEncoder encoder;
+    private final String claveInicial;
+    private final boolean datosDemo;
+    private final boolean publico;
 
     /**
      * Crea la instancia con sus dependencias (inyección por constructor).
@@ -30,18 +46,44 @@ public class DataInitializer implements CommandLineRunner {
      * @param clientes  repositorio de clientes
      * @param productos repositorio de productos
      * @param encoder   codificador BCrypt
+     * @param claveInicial contraseña inicial de los usuarios ({@code ADMIN_PASSWORD})
+     * @param datosDemo    si se cargan usuarios vendedor/caja, clientes y productos de ejemplo
+     * @param publico      si el sistema está publicado en internet
      */
     public DataInitializer(RolRepository roles, UsuarioRepository usuarios, ClienteRepository clientes,
-                           ProductoRepository productos, PasswordEncoder encoder) {
+                           ProductoRepository productos, PasswordEncoder encoder,
+                           @Value("${cruzma.inicial.password:" + CLAVE_DEMO + "}") String claveInicial,
+                           @Value("${cruzma.demo.datos:true}") boolean datosDemo,
+                           @Value("${cruzma.publico:false}") boolean publico) {
         this.roles = roles;
         this.usuarios = usuarios;
         this.clientes = clientes;
         this.productos = productos;
         this.encoder = encoder;
+        this.claveInicial = claveInicial;
+        this.datosDemo = datosDemo;
+        this.publico = publico;
     }
 
     /**
-     * Carga los datos de demostración si la base está vacía.
+     * Verifica que la contraseña inicial sea aceptable: en internet no puede ser la de demostración
+     * ni tener menos de {@value #LARGO_MINIMO} caracteres.
+     *
+     * @param publico si el sistema está publicado en internet
+     * @param clave   contraseña inicial
+     * @throws IllegalStateException si la contraseña no es aceptable para internet
+     */
+    static void validarClaveInicial(boolean publico, String clave) {
+        if (!publico) return;
+        if (clave == null || clave.isBlank() || CLAVE_DEMO.equals(clave) || clave.length() < LARGO_MINIMO) {
+            throw new IllegalStateException("El sistema está publicado en internet (CRUZMA_PUBLICO=true): define la variable "
+                    + "ADMIN_PASSWORD con una contraseña propia de al menos " + LARGO_MINIMO
+                    + " caracteres (no la de demostración del README)");
+        }
+    }
+
+    /**
+     * Carga los datos iniciales si la base está vacía.
      *
      * @param args argumentos de arranque, no se usan
      */
@@ -49,11 +91,16 @@ public class DataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         if (roles.count() > 0) return;
+        validarClaveInicial(publico, claveInicial);
         Rol admin = roles.save(new Rol(Rol.ADMIN));
         Rol vendedor = roles.save(new Rol(Rol.VENDEDOR));
         Rol caja = roles.save(new Rol(Rol.CAJA));
 
         usuario("admin", "Gerente General", admin);
+        if (!datosDemo) {
+            log.info("Datos iniciales: roles y usuario admin (sin datos de ejemplo)");
+            return;
+        }
         usuario("vendedor", "Vendedor de Taller", vendedor);
         usuario("caja", "Caja y Administración", caja);
 
@@ -68,13 +115,14 @@ public class DataInitializer implements CommandLineRunner {
         producto("PRD-005", "Reja de fierro para ventana", "M2", TipoProducto.PRODUCTO, "180.00");
         producto("SRV-001", "Instalación en obra", "SERV", TipoProducto.SERVICIO, "250.00");
         producto("SRV-002", "Mantenimiento y pulido de acero inoxidable", "SERV", TipoProducto.SERVICIO, "150.00");
+        log.info("Datos iniciales: roles, usuarios admin, vendedor y caja, clientes y productos de ejemplo");
     }
 
     private void usuario(String username, String nombres, Rol rol) {
         Usuario u = new Usuario();
         u.setUsername(username);
         u.setNombres(nombres);
-        u.setPasswordHash(encoder.encode("Cruzma2026"));
+        u.setPasswordHash(encoder.encode(claveInicial));
         u.setRol(rol);
         usuarios.save(u);
     }

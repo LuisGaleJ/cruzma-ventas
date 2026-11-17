@@ -4,6 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Agregado
+- **Publicación en Railway**: guía `docs/despliegue-railway.md` (Dockerfile, MySQL en red privada, variables y dominio público).
+- **Publicación en Azure** (Azure for Students): guía `docs/despliegue-azure.md`, flujo de GitHub Actions
+  `publicar-azure.yml` (cada merge a `main` compila, prueba y publica el JAR en App Service) y script
+  `db/nube-usuario-app.sql` (usuario `cruzma_app`@`%` con mínimo privilegio).
+- `Dockerfile` (memoria ajustada a planes de 512 MB) y `.dockerignore` para cualquier plataforma de contenedores.
+- Puerto configurable (`PORT`), soporte de proxy HTTPS (`server.forward-headers-strategy=framework`) y
+  `CRUZMA_PUBLICO=true` para cookie de sesión solo por HTTPS.
+- Datos iniciales configurables: contraseña inicial con `ADMIN_PASSWORD` (en internet es obligatoria, de 10+ caracteres
+  y distinta a la de demostración) y datos de ejemplo con `DEMO_DATOS`. Pruebas en `DataInitializerTest`.
+
 ### Cambiado
 - P4 Clientes: botón **Nuevo cliente** y edición en una ventana emergente (modal de Bootstrap) en lugar del formulario lateral.
   Si hay errores de validación, la ventana se vuelve a abrir con los mensajes. Campos obligatorios marcados con asterisco rojo.
@@ -19,6 +30,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
   Las medidas se escriben como área o longitud (`5`) o como largo x alto (`3.20 x 0.90`); la pantalla muestra el metrado
   calculado y el servidor lo vuelve a calcular (clase `Metrado`). La venta conserva el importe de la cotización.
 - Corregido: con una sola fila, una medida con coma (`3,20 x 0,90`) ya no se parte en dos valores.
+- **Facturación electrónica real con Nubefact** (`NubefactOseService`): envía boletas, facturas y notas de crédito
+  a la API JSON de Nubefact con RUTA y TOKEN en variables de entorno. Se activa con `OSE_PROVEEDOR=nubefact`;
+  por defecto sigue el OSE simulado. Guarda el hash y el enlace al PDF oficial (botón «PDF oficial (OSE)»).
+  La anulación envía una nota de crédito que referencia al comprobante original.
 - El comprobante (boleta o factura) solo se emite cuando la venta está **cancelada**; antes bastaba un adelanto.
   La pantalla de la venta muestra el saldo pendiente y deshabilita «Emitir».
 - **Descuentos en la cotización**: porcentaje por ítem (columna «Desc. %») y descuento global sobre la suma de ítems.
