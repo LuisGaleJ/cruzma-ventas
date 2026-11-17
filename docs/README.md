@@ -13,6 +13,8 @@ Complementa el [README del proyecto](../README.md), que explica cómo instalarlo
 | [Cumplimiento del APF3](apf3-cumplimiento.md) | Principios MVC, DAO, SOLID y TDD, seguridad, librerías, Git y alcance |
 | [Auditoría de datos](auditoria-de-datos.md) | Historial de cambios en la base de datos con Hibernate Envers |
 | [Git y GitHub](git-y-github.md) | Cómo subir el proyecto y registrar los avances |
+| [Publicar en Railway](despliegue-railway.md) | Paso a paso para publicar el sistema en internet con Railway |
+| [Publicar en Azure](despliegue-azure.md) | Alternativa con Azure for Students |
 | [Javadoc](javadoc/index.html) | Referencia generada de todas las clases y métodos |
 
 ## Cómo se documenta el código

@@ -1,0 +1,36 @@
+# Publicación continua en Azure App Service (Java 17 SE, Linux).
+# Cada merge a main compila, prueba y publica el JAR. También se puede lanzar a mano desde la pestaña Actions.
+# Requisitos (ver docs/despliegue-azure.md):
+#   - Variable del repositorio AZURE_WEBAPP_NAME: nombre de la aplicación web en Azure.
+#   - Secreto del repositorio AZURE_WEBAPP_PUBLISH_PROFILE: contenido del perfil de publicación descargado de Azure.
+# Mientras no exista la variable, el flujo se omite (no falla).
+name: Publicar en Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    if: ${{ vars.AZURE_WEBAPP_NAME != '' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: produccion
+      url: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Compilar y ejecutar pruebas
+        run: mvn -B package
+      - name: Publicar en Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: target/*.jar
