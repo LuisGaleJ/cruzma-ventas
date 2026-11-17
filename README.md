@@ -53,6 +53,12 @@ mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 
 Variables del proveedor de facturación: `OSE_PROVEEDOR` (`simulado` o `nubefact`), `OSE_URL` (RUTA) y `OSE_TOKEN` (nunca dentro del código).
 
+### En el celular (PWA)
+
+El sistema se adapta a pantallas pequeñas (menú ☰) y se puede instalar como app: en Chrome (Android) menú ⋮ →
+**Agregar a la pantalla principal** / **Instalar app**; en Safari (iPhone) botón Compartir → **Agregar a inicio**.
+Archivos: `static/manifest.json`, `static/sw.js`, `static/js/app.js`, `static/offline.html`, `static/img/`.
+
 ### Publicado en internet
 
 - **Railway** (usado): [`docs/despliegue-railway.md`](docs/despliegue-railway.md). Construye con el `Dockerfile`, MySQL en

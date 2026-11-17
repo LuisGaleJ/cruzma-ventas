@@ -14,7 +14,9 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:17-jre
 ENV TZ=America/Lima
 WORKDIR /app
-RUN useradd --system --no-create-home cruzma
+# Carpeta de logs (logback-spring.xml escribe en LOG_DIR, por defecto logs/) con permiso para el usuario sin privilegios
+RUN useradd --system --no-create-home cruzma && mkdir -p /app/logs && chown cruzma /app/logs
+ENV LOG_DIR=/app/logs
 COPY --from=compilacion /app/target/*.jar app.jar
 USER cruzma
 EXPOSE 8080
