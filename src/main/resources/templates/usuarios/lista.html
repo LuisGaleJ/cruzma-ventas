@@ -13,7 +13,7 @@
 
         <section class="hoja">
             <table class="table" id="tablaUsuarios">
-                <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th class="sin-orden"></th></tr></thead>
+                <thead><tr><th data-priority="1">Usuario</th><th data-priority="5">Nombre</th><th data-priority="3">Rol</th><th data-priority="4">Estado</th><th data-priority="2" class="sin-orden"></th></tr></thead>
                 <tbody>
                 <tr th:each="u : ${usuarios}">
                     <td th:text="${u.username}">user</td>

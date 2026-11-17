@@ -8,7 +8,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 - Celular: los ítems de la cotización se muestran como tarjetas con sus campos rotulados (producto, cantidad,
   medidas, precio, descuento, subtotal) en lugar de una tabla angosta.
 - Celular: extensión Responsive de DataTables en Clientes, Productos y Usuarios; las columnas que no entran se ven al
-  tocar la fila y siempre quedan visibles la primera columna y la de acciones.
+  tocar la fila; cada tabla define con `data-priority` qué columnas se quedan (nombre o descripción y acciones primero).
 
 ### Agregado
 - **Versión para celular**: menú hamburguesa (☰) en pantallas de hasta 900 px, con barra fija arriba; tablas que se
