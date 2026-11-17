@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 ## [Sin publicar]
 
 ### Agregado
+- Celular: los ítems de la cotización se muestran como tarjetas con sus campos rotulados (producto, cantidad,
+  medidas, precio, descuento, subtotal) en lugar de una tabla angosta.
+- Celular: extensión Responsive de DataTables en Clientes, Productos y Usuarios; las columnas que no entran se ven al
+  tocar la fila y siempre quedan visibles la primera columna y la de acciones.
+
+### Agregado
 - **Versión para celular**: menú hamburguesa (☰) en pantallas de hasta 900 px, con barra fija arriba; tablas que se
   deslizan de lado y cotización/comprobante en una columna.
 - **PWA (app instalable)**: `manifest.json`, íconos y service worker (`sw.js`). Desde Chrome o Safari se puede
