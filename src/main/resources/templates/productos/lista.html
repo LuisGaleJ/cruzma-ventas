@@ -27,7 +27,8 @@
                     <td th:text="${p.codigo}">cod</td>
                     <td th:text="${p.descripcion}">desc</td>
                     <td th:text="${p.tipo?.name() == 'SERVICIO'} ? 'Servicio' : 'Producto'">tipo</td>
-                    <td th:text="${p.unidad}">und</td>
+                    <td><span th:text="${p.unidad}">NIU</span>
+                        <small class="d-block text-secondary" th:text="${p.unidadDescripcion}">UNIDAD (BIENES)</small></td>
                     <td class="num" th:data-order="${p.precioUnitario}"
                         th:text="${#numbers.formatDecimal(p.precioUnitario, 1, 'COMMA', 2, 'POINT')}">0</td>
                     <td sec:authorize="hasRole('ADMIN')" class="text-end">
@@ -75,10 +76,16 @@
                     <input th:field="*{descripcion}" class="form-control" maxlength="200" th:errorclass="is-invalid">
                     <div class="invalid-feedback" th:errors="*{descripcion}"></div></div>
                 <div class="row g-2">
-                    <div class="col-5"><label class="form-label" for="unidad">Unidad <span class="obligatorio">*</span></label>
-                        <input th:field="*{unidad}" class="form-control" placeholder="UND, M, M2" maxlength="10" th:errorclass="is-invalid">
-                        <div class="invalid-feedback" th:errors="*{unidad}"></div></div>
-                    <div class="col-7"><label class="form-label" for="precioUnitario">Precio con IGV (S/) <span class="obligatorio">*</span></label>
+                    <div class="col-12 mb-3"><label class="form-label" for="unidad">Unidad de medida <span class="obligatorio">*</span></label>
+                        <!-- Lista cerrada: unidades de la Tabla 6 de SUNAT según el giro (CIIU 2511 y 4390). ZZ queda solo para servicios. -->
+                        <select th:field="*{unidad}" class="form-select" th:errorclass="is-invalid" aria-describedby="ayudaUnidad">
+                            <option value="">Elige la unidad</option>
+                            <option th:each="u : ${unidades}" th:value="${u.key}"
+                                    th:text="${u.key} + ' - ' + ${u.value}">NIU - UNIDAD (BIENES)</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{unidad}"></div>
+                        <div class="form-text" id="ayudaUnidad">Códigos de SUNAT. Para cobrar por medida usa MTR, MTK o MTQ; los servicios usan ZZ.</div></div>
+                    <div class="col-12"><label class="form-label" for="precioUnitario">Precio con IGV (S/) <span class="obligatorio">*</span></label>
                         <input th:field="*{precioUnitario}" type="number" step="0.01" min="0" class="form-control" th:errorclass="is-invalid">
                         <div class="invalid-feedback" th:errors="*{precioUnitario}"></div></div>
                 </div>
@@ -114,7 +121,21 @@
             var tipo = form.elements['tipo'].value;
             form.elements['codigo'].value = (original && original.tipo === tipo) ? original.codigo : (siguientes[tipo] || '');
         }
-        form.elements['tipo'].addEventListener('change', actualizarCodigo);
+        form.elements['tipo'].addEventListener('change', function () { actualizarCodigo(); ajustarUnidades(true); });
+
+        // Unidad según el tipo: un SERVICIO solo puede ser ZZ; un PRODUCTO, cualquier unidad menos ZZ
+        var selUnidad = form.elements['unidad'];
+        function ajustarUnidades(cambioTipo) {
+            var servicio = form.elements['tipo'].value === 'SERVICIO';
+            Array.prototype.forEach.call(selUnidad.options, function (op) {
+                if (!op.value) return;
+                var permitida = servicio ? op.value === 'ZZ' : op.value !== 'ZZ';
+                op.hidden = !permitida;
+                op.disabled = !permitida;
+            });
+            if (servicio) selUnidad.value = 'ZZ';
+            else if (selUnidad.value === 'ZZ' || (cambioTipo && !selUnidad.value)) selUnidad.value = cambioTipo ? 'NIU' : '';
+        }
 
         function limpiarErrores() {
             form.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
@@ -130,6 +151,7 @@
             var nuevo = !datos.id;
             original = nuevo ? null : { tipo: datos.tipo, codigo: datos.codigo };
             actualizarCodigo();
+            ajustarUnidades(false);
             document.getElementById('tituloModalProducto').textContent =
                 nuevo ? 'Nuevo producto o servicio' : 'Editar producto o servicio';
             document.getElementById('btnGuardarProducto').textContent = nuevo ? 'Guardar' : 'Actualizar';
@@ -146,8 +168,6 @@
             abrir(btn.dataset);                   // data-precio-unitario llega como dataset.precioUnitario
         });
 
-        // La unidad se guarda en mayúsculas (und → UND)
-        form.elements['unidad'].addEventListener('input', function (e) { e.target.value = e.target.value.toUpperCase(); });
 
         modalEl.addEventListener('shown.bs.modal', function () { form.elements['descripcion'].focus(); });
 
@@ -155,6 +175,7 @@
         if (modalEl.dataset.abrir === 'true') {
             if (form.elements['id'].value) original = { tipo: form.elements['tipo'].value, codigo: form.elements['codigo'].value };
             actualizarCodigo();
+            ajustarUnidades(false);
             modal.show();
         }
     });

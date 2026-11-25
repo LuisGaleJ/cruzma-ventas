@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.cruzma.ventas.model.Producto;
 import pe.cruzma.ventas.model.TipoProducto;
+import pe.cruzma.ventas.model.UnidadMedida;
 import pe.cruzma.ventas.service.ProductoService;
 
 /**
@@ -40,6 +41,7 @@ public class ProductoController {
         model.addAttribute("tipoFiltro", tipo);
         model.addAttribute("producto", editar != null ? service.obtener(editar) : new Producto());
         model.addAttribute("tipos", TipoProducto.values());
+        agregarUnidades(model);
         model.addAttribute("siguientesCodigos", service.siguientesCodigos());
         model.addAttribute("abrirFormulario", editar != null);
         return "productos/lista";
@@ -56,6 +58,9 @@ public class ProductoController {
      */
     @PostMapping("/guardar")
     public String guardar(@Valid @ModelAttribute("producto") Producto producto, BindingResult br, Model model, RedirectAttributes ra) {
+        // Unidad: debe ser de la Tabla 6 de SUNAT; ZZ solo para servicios
+        String errorUnidad = UnidadMedida.validar(producto.getTipo(), producto.getUnidad());
+        if (errorUnidad != null && !br.hasFieldErrors("unidad")) br.rejectValue("unidad", "unidad.invalida", errorUnidad);
         if (!br.hasErrors()) {
             try {
                 service.guardar(producto);
@@ -70,8 +75,14 @@ public class ProductoController {
         // Errores: se vuelve a mostrar el catálogo con la ventana abierta, los datos escritos y los mensajes
         model.addAttribute("productos", service.listar(null));
         model.addAttribute("tipos", TipoProducto.values());
+        agregarUnidades(model);
         model.addAttribute("siguientesCodigos", service.siguientesCodigos());
         model.addAttribute("abrirFormulario", true);
         return "productos/lista";
+    }
+
+    /** Lista desplegable de unidades: las de la Tabla 6 de SUNAT que corresponden al giro de la empresa. */
+    private static void agregarUnidades(Model model) {
+        model.addAttribute("unidades", UnidadMedida.todas());
     }
 }

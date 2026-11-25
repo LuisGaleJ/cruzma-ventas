@@ -1,0 +1,26 @@
+PATRÓN DAO - Grupo Cruzma (APF3)
+
+Copiar la carpeta "src" dentro de la carpeta del proyecto cruzma-ventas
+(C:\proyectos\cruzma-ventas), aceptando combinar carpetas. Se agregan:
+
+  src/main/java/pe/cruzma/ventas/dao/DataAccessObject.java   interfaz DAO genérica (CRUD)
+  src/main/java/pe/cruzma/ventas/dao/ClienteDAO.java         interfaz DAO de clientes
+  src/main/java/pe/cruzma/ventas/dao/ClienteDAOImpl.java     clase concreta DAO (JDBC + PreparedStatement)
+  src/main/java/pe/cruzma/ventas/dao/ConexionBD.java         utilidad de conexión (pool HikariCP)
+  src/main/java/pe/cruzma/ventas/dao/DataAccessDAOException.java
+  src/main/java/pe/cruzma/ventas/dao/package-info.java
+  src/main/java/pe/cruzma/ventas/dto/ClienteDTO.java         clase DTO
+  src/main/java/pe/cruzma/ventas/service/CarteraClientesService.java   clase Cliente del patrón
+  src/test/java/pe/cruzma/ventas/dao/ClienteDAOImplTest.java prueba del CRUD contra la BD
+
+No se modifica ningún archivo existente.
+
+Verificar en NetBeans:  clic derecho en el proyecto > Test   (o en consola: mvn test)
+La prueba ClienteDAOImplTest debe salir en verde.
+
+Capturas para el informe (sección 3.8.1.4), con el árbol del proyecto visible a la izquierda:
+  1. ClienteDTO.java   2. ClienteDAOImpl.java   3. CarteraClientesService.java
+Capturas MVC (sección 3.8.1.2):
+  1. model/Cliente.java   2. templates/clientes/lista.html   3. controller/ClienteController.java
+
+Subir a GitHub:  git checkout -b feature/patron-dao ; git add src ; git commit -m "feat: patrón DAO de clientes con JDBC" ; git push

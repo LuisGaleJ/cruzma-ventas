@@ -28,7 +28,7 @@ public final class Fixtures {
         Producto p = new Producto();
         p.setCodigo("PRD-T");
         p.setDescripcion(descripcion);
-        p.setUnidad("UND");
+        p.setUnidad("NIU");
         p.setTipo(TipoProducto.PRODUCTO);
         p.setPrecioUnitario(new BigDecimal(precio));
         return p;

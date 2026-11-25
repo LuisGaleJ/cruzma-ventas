@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Cambiado (observación del docente)
+- **Unidad de medida con la Tabla 6 de SUNAT** (Anexo 3 del PLE): el producto guarda el código oficial (`NIU`, `MTR`,
+  `MTK`, `MTQ`, `KGM`, `ZZ`...) elegido de una **lista desplegable**, sin texto libre. Solo se ofrecen las 17 unidades
+  que corresponden al giro de la empresa (CIIU 2511 fabricación de productos metálicos para uso estructural y CIIU 4390
+  actividades especializadas de construcción). Un servicio usa siempre `ZZ`; un producto, cualquier otra.
+- El metrado reconoce `MTR`, `MTK` y `MTQ` (y sigue aceptando las unidades anteriores `M`, `ML`, `M2`, `M3`).
+- Nubefact recibe la unidad del producto (`unidad_de_medida`) en lugar de solo `NIU`/`ZZ`.
+- `db/migracion-004-unidades-sunat.sql`: convierte las unidades existentes (UND → NIU, M2 → MTK, SERV → ZZ...).
+  Pruebas: `UnidadMedidaTest`, `MetradoTest`, `ProductoServiceTest`.
+
 ### Agregado
 - Celular: los ítems de la cotización se muestran como tarjetas con sus campos rotulados (producto, cantidad,
   medidas, precio, descuento, subtotal) en lugar de una tabla angosta.

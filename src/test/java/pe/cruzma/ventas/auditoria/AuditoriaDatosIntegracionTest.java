@@ -41,7 +41,7 @@ class AuditoriaDatosIntegracionTest {
         Producto p = new Producto();
         p.setCodigo("AUD-001");
         p.setDescripcion("Reja de prueba de auditoría");
-        p.setUnidad("UND");
+        p.setUnidad("NIU");
         p.setTipo(TipoProducto.PRODUCTO);
         p.setPrecioUnitario(new BigDecimal("250.00"));
         p = productos.save(p);

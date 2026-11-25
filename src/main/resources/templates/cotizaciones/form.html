@@ -36,8 +36,8 @@
                     <tr class="item">
                         <td class="col-producto" data-label="Producto o servicio"><select name="productoId" class="form-select producto" aria-label="Producto">
                             <option value="">Elige</option>
-                            <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario},data-unidad=${p.unidad}"
-                                    th:text="${p.descripcion} + ' (' + ${p.unidad} + ')'">producto</option>
+                            <option th:each="p : ${productos}" th:value="${p.id}" th:attr="data-precio=${p.precioUnitario},data-unidad=${p.unidadSunat},data-simbolo=${p.unidadSimbolo}"
+                                    th:text="${p.descripcion} + ' (' + ${p.unidadSimbolo} + ')'">producto</option>
                         </select></td>
                         <td data-label="Cantidad"><input name="cantidad" type="number" min="1" value="1" class="form-control cantidad" aria-label="Cantidad"></td>
                         <td data-label="Medidas"><input name="medidas" class="form-control medidas" placeholder="Opcional" aria-label="Medidas">
@@ -74,8 +74,9 @@
 <!-- th:inline="none": Thymeleaf no debe interpretar [[...]] dentro del JavaScript -->
 <script th:inline="none">
     // Calcula subtotales y totales en pantalla; el servidor vuelve a calcularlos al guardar (clase Metrado).
-    // Productos en M/ML/M2/M3: subtotal = precio x cantidad x metrado. Otros: precio x cantidad.
-    const DIMENSIONES = { M: 1, ML: 1, M2: 2, M3: 3 };
+    // Productos en metro (MTR), metro cuadrado (MTK) o metro cúbico (MTQ) de la Tabla 6 de SUNAT:
+    // subtotal = precio x cantidad x metrado. Otras unidades: precio x cantidad.
+    const DIMENSIONES = { MTR: 1, MTK: 2, MTQ: 3 };
     const AYUDA = {
         1: 'Longitud en metros, ej. 4.5',
         2: 'Área (ej. 5) o largo x alto, ej. 3.20 x 0.90',
@@ -85,6 +86,10 @@
     function unidadDe(fila) {
         const op = fila.querySelector('.producto').selectedOptions[0];
         return ((op && op.dataset.unidad) || '').trim().toUpperCase();
+    }
+    function simboloDe(fila) {
+        const op = fila.querySelector('.producto').selectedOptions[0];
+        return (op && op.dataset.simbolo) || '';
     }
 
     // Devuelve el metrado (número > 0), 1 si la unidad no se cobra por medida, o null si las medidas no son válidas
@@ -119,7 +124,7 @@
             medidas.placeholder = dims ? AYUDA[dims] : 'Opcional';
             medidas.required = dims > 0;
             medidas.classList.toggle('is-invalid', dims > 0 && medidas.value !== '' && m === null);
-            aviso.textContent = dims && m !== null ? '= ' + fmt(m) + ' ' + unidad.toLowerCase() + ' por unidad' : '';
+            aviso.textContent = dims && m !== null ? '= ' + fmt(m) + ' ' + simboloDe(fila) + ' por unidad' : '';
             const sinDescuento = redondear(cant * precio * (m === null ? 0 : m));
             const desc = fila.querySelector('.descuento');
             desc.classList.toggle('is-invalid', pct(desc) > MAXIMO);

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.cruzma.ventas.model.Producto;
 import pe.cruzma.ventas.model.TipoProducto;
+import pe.cruzma.ventas.model.UnidadMedida;
 import pe.cruzma.ventas.repository.ProductoRepository;
 
 import java.util.EnumMap;
@@ -93,6 +94,8 @@ public class ProductoService {
      */
     @Transactional
     public Producto guardar(Producto p) {
+        String errorUnidad = UnidadMedida.validar(p.getTipo(), p.getUnidad());
+        if (errorUnidad != null) throw new IllegalArgumentException(errorUnidad);
         Producto actual = p.getId() == null ? null : obtener(p.getId());
         boolean conservar = actual != null && actual.getTipo() == p.getTipo();
         p.setCodigo(conservar ? actual.getCodigo() : siguienteCodigo(p.getTipo()));

@@ -58,4 +58,14 @@ class MetradoTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new DetalleCotizacion(baranda, 1, "", new BigDecimal("280.00")));
     }
+
+    @Test
+    void reconoceLosCodigosDeLaTabla6DeSunat() {
+        igual("2.88", Metrado.calcular("MTK", "3.20 x 0.90"));
+        igual("4.5", Metrado.calcular("MTR", "4.5"));
+        igual("1", Metrado.calcular("MTQ", "2 x 1 x 0.5"));
+        igual("1", Metrado.calcular("NIU", "color negro"));
+        assertTrue(Metrado.seCobraPorMedida("MTK"));
+        assertFalse(Metrado.seCobraPorMedida("ZZ"));
+    }
 }
