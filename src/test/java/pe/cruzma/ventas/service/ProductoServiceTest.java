@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /** Código automático del catálogo: PRD-### para productos y SRV-### para servicios. */
@@ -31,6 +34,7 @@ class ProductoServiceTest {
         p.setId(id);
         p.setCodigo(codigo);
         p.setTipo(tipo);
+        p.setUnidad(tipo == TipoProducto.SERVICIO ? "ZZ" : "NIU");   // unidades válidas de la Tabla 6
         return p;
     }
 
@@ -63,5 +67,17 @@ class ProductoServiceTest {
 
         when(repo.findByCodigoStartingWith("SRV-")).thenReturn(List.of(item(1L, "SRV-002", TipoProducto.SERVICIO)));
         assertEquals("SRV-003", service.guardar(item(7L, "PRD-004", TipoProducto.SERVICIO)).getCodigo());
+    }
+
+    @Test
+    void noGuardaUnaUnidadFueraDeLaListaNiUnServicioSinZZ() {
+        Producto conUnidadLibre = item(null, "X", TipoProducto.PRODUCTO);
+        conUnidadLibre.setUnidad("UND");
+        assertThrows(IllegalArgumentException.class, () -> service.guardar(conUnidadLibre));
+
+        Producto servicioEnMetros = item(null, "X", TipoProducto.SERVICIO);
+        servicioEnMetros.setUnidad("MTR");
+        assertThrows(IllegalArgumentException.class, () -> service.guardar(servicioEnMetros));
+        verify(repo, never()).save(any());
     }
 }

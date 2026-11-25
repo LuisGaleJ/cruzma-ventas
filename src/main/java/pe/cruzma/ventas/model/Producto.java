@@ -34,7 +34,7 @@ public class Producto {
     @Column(nullable = false, length = 200)
     private String descripcion;
 
-    @NotBlank(message = "Ingresa la unidad (UND, M, M2...)")
+    @NotBlank(message = "Elige la unidad de medida")
     @Column(nullable = false, length = 10)
     private String unidad;
 
@@ -76,14 +76,26 @@ public class Producto {
      * @param descripcion nuevo valor
      */
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-    /** {@return unidad de medida (UND, M, M2, SERV)} */
+    /** {@return código de unidad de medida de la Tabla 6 de SUNAT (NIU, MTR, MTK, ZZ...)} */
     public String getUnidad() { return unidad; }
     /**
-     * Asigna unidad de medida (UND, M, M2, SERV).
+     * Asigna la unidad de medida: código de la Tabla 6 de SUNAT (ver {@link UnidadMedida}).
      *
      * @param unidad nuevo valor
      */
     public void setUnidad(String unidad) { this.unidad = unidad; }
+
+    // Datos de la unidad para las pantallas (no se guardan: la entidad usa acceso por campos).
+    // Las plantillas los usan en lugar de llamar a UnidadMedida, porque Thymeleaf 3.1 no permite T(...) en th:attr.
+
+    /** {@return código de la Tabla 6 de SUNAT, convirtiendo las unidades anteriores (UND → NIU, M2 → MTK...)} */
+    public String getUnidadSunat() { return UnidadMedida.normalizar(unidad); }
+
+    /** {@return abreviatura legible de la unidad (und, m, m2, kg...)} */
+    public String getUnidadSimbolo() { return UnidadMedida.simbolo(unidad); }
+
+    /** {@return descripción oficial de SUNAT (ej. METRO CUADRADO)} */
+    public String getUnidadDescripcion() { return UnidadMedida.descripcion(UnidadMedida.normalizar(unidad)); }
     /** {@return tipo} */
     public TipoProducto getTipo() { return tipo; }
     /**

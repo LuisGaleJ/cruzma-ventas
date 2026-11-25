@@ -21,8 +21,9 @@ Cada regla indica dónde está implementada y cómo se verifica.
 | 15 | Un texto que empieza con `= + - @` no se ejecuta como fórmula al exportar | Seguridad | `DatosSeguros`, `ExcelExportador`, `CsvExportador` | `ExportadoresTest` |
 | 16 | No se emite factura a un cliente con DNI ni comprobante sin pago | SUNAT / Empresa | `ComprobanteService.emitir` | `ComprobanteServiceTest` |
 | 17 | Una cotización vencida o ya convertida no se convierte en venta | Empresa | `CotizacionService.convertirAVenta` | `CotizacionServiceTest` |
-| 18 | Si el producto se cobra por M, ML, M2 o M3, el subtotal del ítem es precio x cantidad x metrado; las medidas son obligatorias y se aceptan como valor directo (`5`) o largo x alto (`3.20 x 0.90`) | Empresa | `Metrado.calcular`, `DetalleCotizacion` | `MetradoTest` |
+| 18 | Si el producto se cobra por metro (MTR), metro cuadrado (MTK) o metro cúbico (MTQ), el subtotal del ítem es precio x cantidad x metrado; las medidas son obligatorias y se aceptan como valor directo (`5`) o largo x alto (`3.20 x 0.90`) | Empresa | `Metrado.calcular`, `DetalleCotizacion` | `MetradoTest` |
 | 19 | Descuento por ítem y global en porcentaje; cada porcentaje y el descuento total efectivo no pueden superar el máximo del rol (vendedor 10 %, administrador 30 %) | Empresa | `Descuento`, `CotizacionService.crear` | `DescuentoTest`, `CotizacionServiceTest` |
+| 20 | La unidad de medida se elige de una lista cerrada con códigos de la Tabla 6 de SUNAT según el giro (CIIU 2511 y 4390); un servicio usa ZZ y un producto cualquier otra | SUNAT / Docente | `UnidadMedida.validar`, `ProductoController`, `ProductoService.guardar` | `UnidadMedidaTest`, `ProductoServiceTest` |
 
 ## Cómo se informan los errores
 

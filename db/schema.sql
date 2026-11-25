@@ -32,7 +32,7 @@ CREATE TABLE producto (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   codigo VARCHAR(20) NOT NULL UNIQUE,
   descripcion VARCHAR(200) NOT NULL,
-  unidad VARCHAR(10) NOT NULL,
+  unidad VARCHAR(10) NOT NULL,  -- código de la Tabla 6 de SUNAT: NIU, MTR, MTK, MTQ, KGM... (ZZ para servicios)
   tipo ENUM('PRODUCTO','SERVICIO') NOT NULL,
   precio_unitario DECIMAL(10,2) NOT NULL CHECK (precio_unitario >= 0)
 );

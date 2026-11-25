@@ -4,6 +4,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Cambiado (observación del docente)
+- **Unidad de medida con la Tabla 6 de SUNAT** (Anexo 3 del PLE): el producto guarda el código oficial (`NIU`, `MTR`,
+  `MTK`, `MTQ`, `KGM`, `ZZ`...) elegido de una **lista desplegable**, sin texto libre. Solo se ofrecen las 17 unidades
+  que corresponden al giro de la empresa (CIIU 2511 fabricación de productos metálicos para uso estructural y CIIU 4390
+  actividades especializadas de construcción). Un servicio usa siempre `ZZ`; un producto, cualquier otra.
+- El metrado reconoce `MTR`, `MTK` y `MTQ` (y sigue aceptando las unidades anteriores `M`, `ML`, `M2`, `M3`).
+- Nubefact recibe la unidad del producto (`unidad_de_medida`) en lugar de solo `NIU`/`ZZ`.
+- `db/migracion-004-unidades-sunat.sql`: convierte las unidades existentes (UND → NIU, M2 → MTK, SERV → ZZ...).
+  Pruebas: `UnidadMedidaTest`, `MetradoTest`, `ProductoServiceTest`.
+- **Reporte Excel con descuentos** (observación del docente): las hojas Ventas, Clientes, Productos y Por día
+  muestran **monto original** (sin descuentos), **descuento** en soles y **total con descuento**. Nueva hoja
+  **Detalle por producto** con cada ítem vendido: medidas, precio, monto original, % de descuento del ítem y global,
+  descuento y total. Las hojas terminan con una fila TOTAL; el Resumen incluye monto original y descuentos del
+  período; el CSV agrega las columnas MontoOriginal y Descuento. Prueba: `ExportadoresTest`.
+
 ### Agregado
 - Celular: los ítems de la cotización se muestran como tarjetas con sus campos rotulados (producto, cantidad,
   medidas, precio, descuento, subtotal) en lugar de una tabla angosta.

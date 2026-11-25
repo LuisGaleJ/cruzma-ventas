@@ -9,11 +9,13 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pe.cruzma.ventas.dto.DatosReporte;
+import pe.cruzma.ventas.dto.DetalleReporte;
 import pe.cruzma.ventas.dto.FilaReporte;
 import pe.cruzma.ventas.model.Venta;
 import pe.cruzma.ventas.util.DatosSeguros;
@@ -27,8 +29,9 @@ import java.util.List;
 /**
  * Exporta los reportes a un libro de Excel (.xlsx) con Apache POI (RF14).
  * <p>
- * Genera seis hojas: Resumen, Ventas, Por día (R1), Clientes y Productos (R2) y
- * Por cobrar (R3). Los montos se guardan como números para que el gerente pueda sumarlos
+ * Genera siete hojas: Resumen, Ventas, Detalle por producto, Por día (R1), Clientes y Productos (R2) y
+ * Por cobrar (R3). Las ventas, clientes y productos muestran el monto original (sin descuentos), el descuento
+ * concedido y el total después del descuento; las hojas de ventas y detalle terminan con una fila de totales. Los montos se guardan como números para que el gerente pueda sumarlos
  * y los textos se guardan como celdas de texto; si parecen una fórmula se marcan con
  * "prefijo de comilla" para que Excel nunca los ejecute (prevención de inyección de fórmulas).
  *
@@ -59,6 +62,7 @@ public class ExcelExportador implements ExportadorReporte {
             Estilos e = new Estilos(libro);
             hojaResumen(libro, e, datos);
             hojaVentas(libro, e, datos.ventas());
+            hojaDetalle(libro, e, datos.detalle());
             hojaFilas(libro, e, "Por día (R1)", "Día", "Ventas", datos.porDia());
             hojaFilas(libro, e, "Clientes (R2)", "Cliente", "Ventas", datos.porCliente());
             hojaFilas(libro, e, "Productos (R2)", "Producto", "Unidades", datos.porProducto());
@@ -84,38 +88,80 @@ public class ExcelExportador implements ExportadorReporte {
         r = hoja.createRow(5);
         texto(e, r, 0, "Ticket promedio (S/)", e.encabezado);
         dinero(r, 1, d.ticketPromedio(), e.dinero);
-        anchos(hoja, 26, 16);
+        r = hoja.createRow(6);
+        texto(e, r, 0, "Monto original (S/)", e.encabezado);
+        dinero(r, 1, d.totalOriginal(), e.dinero);
+        r = hoja.createRow(7);
+        texto(e, r, 0, "Descuentos concedidos (S/)", e.encabezado);
+        dinero(r, 1, d.totalDescuento(), e.dinero);
+        anchos(hoja, 28, 16);
     }
 
     private void hojaVentas(Workbook libro, Estilos e, List<Venta> ventas) {
         Sheet hoja = libro.createSheet("Ventas");
-        encabezados(hoja, e, "Fecha", "Venta", "Cliente", "Documento", "Total", "Pagado", "Saldo", "Estado");
+        encabezados(hoja, e, "Fecha", "Venta", "Cotización", "Cliente", "Documento", "Monto original (S/)",
+                "Descuento (S/)", "Total con descuento (S/)", "Pagado (S/)", "Saldo (S/)", "Estado");
         int i = 1;
         for (Venta v : ventas) {
             Row r = hoja.createRow(i++);
             texto(e, r, 0, v.getFecha().toLocalDate().toString(), null);
             r.createCell(1).setCellValue(v.getId() == null ? 0 : v.getId());
-            texto(e, r, 2, v.getCliente().getRazonSocial(), null);
-            texto(e, r, 3, v.getCliente().getNumDoc(), null);
-            dinero(r, 4, v.getTotal(), e.dinero);
-            dinero(r, 5, v.getPagado(), e.dinero);
-            dinero(r, 6, v.getSaldo(), e.dinero);
-            texto(e, r, 7, v.getEstado().name(), null);
+            texto(e, r, 2, v.getCotizacion() == null ? "" : v.getCotizacion().getNumero(), null);
+            texto(e, r, 3, v.getCliente().getRazonSocial(), null);
+            texto(e, r, 4, v.getCliente().getNumDoc(), null);
+            dinero(r, 5, v.getMontoOriginal(), e.dinero);
+            dinero(r, 6, v.getMontoDescuento(), e.dinero);
+            dinero(r, 7, v.getTotal(), e.dinero);
+            dinero(r, 8, v.getPagado(), e.dinero);
+            dinero(r, 9, v.getSaldo(), e.dinero);
+            texto(e, r, 10, v.getEstado().name(), null);
         }
-        anchos(hoja, 12, 8, 40, 14, 12, 12, 12, 12);
+        filaTotales(hoja, e, i, 3, 5, 6, 7, 8, 9);
+        anchos(hoja, 12, 8, 15, 40, 14, 18, 15, 22, 13, 13, 12);
+    }
+
+    /** Un ítem vendido por fila: monto original, descuento (del ítem más su parte del global) y total con descuento. */
+    private void hojaDetalle(Workbook libro, Estilos e, List<DetalleReporte> detalle) {
+        Sheet hoja = libro.createSheet("Detalle por producto");
+        encabezados(hoja, e, "Fecha", "Venta", "Cotización", "Cliente", "Producto o servicio", "Unidad", "Cant.",
+                "Medidas", "P. unit. (S/)", "Monto original (S/)", "Desc. ítem %", "Desc. global %",
+                "Descuento (S/)", "Total con descuento (S/)");
+        int i = 1;
+        for (DetalleReporte d : detalle) {
+            Row r = hoja.createRow(i++);
+            texto(e, r, 0, d.fecha().toString(), null);
+            r.createCell(1).setCellValue(d.venta() == null ? 0 : d.venta());
+            texto(e, r, 2, d.cotizacion(), null);
+            texto(e, r, 3, d.cliente(), null);
+            texto(e, r, 4, d.producto(), null);
+            texto(e, r, 5, d.unidad(), null);
+            r.createCell(6).setCellValue(d.cantidad());
+            texto(e, r, 7, d.medidas(), null);
+            dinero(r, 8, d.precio(), e.dinero);
+            dinero(r, 9, d.montoOriginal(), e.dinero);
+            dinero(r, 10, d.descuentoItem(), e.dinero);
+            dinero(r, 11, d.descuentoGlobal(), e.dinero);
+            dinero(r, 12, d.montoDescuento(), e.dinero);
+            dinero(r, 13, d.montoCobrado(), e.dinero);
+        }
+        filaTotales(hoja, e, i, 4, 9, 12, 13);
+        anchos(hoja, 12, 8, 15, 34, 38, 8, 7, 14, 13, 18, 12, 13, 15, 22);
     }
 
     private void hojaFilas(Workbook libro, Estilos e, String nombre, String etiqueta, String cantidad, List<FilaReporte> filas) {
         Sheet hoja = libro.createSheet(nombre);
-        encabezados(hoja, e, etiqueta, cantidad, "Monto (S/)");
+        encabezados(hoja, e, etiqueta, cantidad, "Monto original (S/)", "Descuento (S/)", "Total con descuento (S/)");
         int i = 1;
         for (FilaReporte f : filas) {
             Row r = hoja.createRow(i++);
             texto(e, r, 0, f.etiqueta(), null);
             r.createCell(1).setCellValue(f.cantidad());
-            dinero(r, 2, f.monto(), e.dinero);
+            dinero(r, 2, f.montoOriginal(), e.dinero);
+            dinero(r, 3, f.descuento(), e.dinero);
+            dinero(r, 4, f.monto(), e.dinero);
         }
-        anchos(hoja, 44, 12, 14);
+        filaTotales(hoja, e, i, 0, 2, 3, 4);
+        anchos(hoja, 44, 12, 18, 15, 22);
     }
 
     private void hojaPorCobrar(Workbook libro, Estilos e, List<Venta> ventas) {
@@ -131,6 +177,25 @@ public class ExcelExportador implements ExportadorReporte {
             dinero(r, 4, v.getSaldo(), e.dinero);
         }
         anchos(hoja, 8, 40, 12, 8, 14);
+    }
+
+    /**
+     * Fila «TOTAL» al final de la hoja con sumas (fórmulas SUM, que el sistema genera, no texto del usuario).
+     *
+     * @param fila          número de la fila de totales (la siguiente a la última con datos)
+     * @param colEtiqueta   columna donde se escribe «TOTAL»
+     * @param columnas      columnas de dinero que se suman
+     */
+    private static void filaTotales(Sheet hoja, Estilos e, int fila, int colEtiqueta, int... columnas) {
+        if (fila <= 1) return;                                   // sin datos, no hay totales
+        Row r = hoja.createRow(fila);
+        texto(e, r, colEtiqueta, "TOTAL", e.encabezado);
+        for (int c : columnas) {
+            String letra = CellReference.convertNumToColString(c);
+            Cell celda = r.createCell(c);
+            celda.setCellFormula("SUM(" + letra + "2:" + letra + fila + ")");
+            celda.setCellStyle(e.dineroTotal);
+        }
     }
 
     private static void encabezados(Sheet hoja, Estilos e, String... titulos) {
@@ -165,6 +230,7 @@ public class ExcelExportador implements ExportadorReporte {
         final CellStyle titulo;
         final CellStyle encabezado;
         final CellStyle dinero;
+        final CellStyle dineroTotal;
         final CellStyle textoProtegido;
 
         Estilos(Workbook libro) {
@@ -185,6 +251,11 @@ public class ExcelExportador implements ExportadorReporte {
 
             dinero = libro.createCellStyle();
             dinero.setDataFormat(libro.createDataFormat().getFormat("#,##0.00"));
+
+            dineroTotal = libro.createCellStyle();
+            dineroTotal.cloneStyleFrom(dinero);
+            dineroTotal.setFont(negrita);
+            dineroTotal.setBorderTop(BorderStyle.THIN);
 
             textoProtegido = libro.createCellStyle();
             textoProtegido.setQuotePrefixed(true);

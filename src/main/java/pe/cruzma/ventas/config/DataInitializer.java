@@ -108,13 +108,13 @@ public class DataInitializer implements CommandLineRunner {
         cliente(TipoDocumento.RUC, "20601234567", "Restaurante El Chifa del Norte S.A.C.", "Jr. Tacna 320, Piura", "073305511");
         cliente(TipoDocumento.RUC, "20487654321", "Constructora Los Algarrobos S.A.", "Urb. Miraflores Mz B Lt 4, Castilla", "073348870");
 
-        producto("PRD-001", "Baranda de acero inoxidable 304", "M", TipoProducto.PRODUCTO, "320.00");
-        producto("PRD-002", "Mesa de trabajo inox para cocina", "UND", TipoProducto.PRODUCTO, "1450.00");
-        producto("PRD-003", "Campana extractora industrial inox", "UND", TipoProducto.PRODUCTO, "2800.00");
-        producto("PRD-004", "Puerta metálica de fierro con pintura", "UND", TipoProducto.PRODUCTO, "1200.00");
-        producto("PRD-005", "Reja de fierro para ventana", "M2", TipoProducto.PRODUCTO, "180.00");
-        producto("SRV-001", "Instalación en obra", "SERV", TipoProducto.SERVICIO, "250.00");
-        producto("SRV-002", "Mantenimiento y pulido de acero inoxidable", "SERV", TipoProducto.SERVICIO, "150.00");
+        producto("PRD-001", "Baranda de acero inoxidable 304", "MTR", TipoProducto.PRODUCTO, "320.00");
+        producto("PRD-002", "Mesa de trabajo inox para cocina", "NIU", TipoProducto.PRODUCTO, "1450.00");
+        producto("PRD-003", "Campana extractora industrial inox", "NIU", TipoProducto.PRODUCTO, "2800.00");
+        producto("PRD-004", "Puerta metálica de fierro con pintura", "NIU", TipoProducto.PRODUCTO, "1200.00");
+        producto("PRD-005", "Reja de fierro para ventana", "MTK", TipoProducto.PRODUCTO, "180.00");
+        producto("SRV-001", "Instalación en obra", "ZZ", TipoProducto.SERVICIO, "250.00");
+        producto("SRV-002", "Mantenimiento y pulido de acero inoxidable", "ZZ", TipoProducto.SERVICIO, "150.00");
         log.info("Datos iniciales: roles, usuarios admin, vendedor y caja, clientes y productos de ejemplo");
     }
 

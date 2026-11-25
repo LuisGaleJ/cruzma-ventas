@@ -4,20 +4,20 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Metrado de un ítem cotizado: cuántos metros o metros cuadrados se cobran por unidad.
  * <p>
- * Según la unidad del producto:
+ * Según la unidad del producto (código de la Tabla 6 de SUNAT, ver {@link UnidadMedida}):
  * <ul>
- *   <li>{@code M2}: el área, escrita directa ({@code 5}) o como largo x alto ({@code 3.20 x 0.90}).</li>
- *   <li>{@code M} o {@code ML}: la longitud ({@code 4.5}).</li>
- *   <li>{@code M3}: el volumen, directo o como largo x ancho x alto.</li>
- *   <li>Cualquier otra unidad ({@code UND}, {@code SERV}...): las medidas son solo descriptivas y el metrado es 1.</li>
+ *   <li>{@code MTK} (metro cuadrado): el área, escrita directa ({@code 5}) o como largo x alto ({@code 3.20 x 0.90}).</li>
+ *   <li>{@code MTR} (metro): la longitud ({@code 4.5}).</li>
+ *   <li>{@code MTQ} (metro cúbico): el volumen, directo o como largo x ancho x alto.</li>
+ *   <li>Cualquier otra unidad ({@code NIU}, {@code ZZ}...): las medidas son solo descriptivas y el metrado es 1.</li>
  * </ul>
+ * También reconoce las unidades anteriores a la Tabla 6 ({@code M}, {@code ML}, {@code M2}, {@code M3}).
  * El subtotal del ítem es precio x cantidad x metrado.
  *
  * @author Luis Osmin Galecio Jaramillo
@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
  */
 public final class Metrado {
 
-    private static final Set<String> LINEALES = Set.of("M", "ML");
     private static final Pattern NUMERO = Pattern.compile("\\d+(?:[.,]\\d+)?");
 
     private Metrado() { }
@@ -43,7 +42,7 @@ public final class Metrado {
     /**
      * Calcula el metrado a partir de las medidas escritas.
      *
-     * @param unidad  unidad del producto (M2, M, ML, M3, UND...)
+     * @param unidad  unidad del producto (MTK, MTR, MTQ, NIU...)
      * @param medidas texto escrito en la cotización, por ejemplo {@code "3.20 x 0.90"}
      * @return metrado mayor a cero, con hasta 4 decimales; 1 si la unidad no se cobra por medida
      * @throws IllegalArgumentException si la unidad se cobra por medida y las medidas no son válidas
@@ -69,24 +68,21 @@ public final class Metrado {
      */
     public static String ayuda(String unidad) {
         return switch (dimensiones(unidad)) {
-            case 1 -> "Para unidad " + normalizar(unidad) + " indica la longitud en metros (ej. 4.5)";
-            case 2 -> "Para unidad M2 indica el área (ej. 5) o largo x alto en metros (ej. 3.20 x 0.90)";
-            case 3 -> "Para unidad M3 indica el volumen (ej. 2) o largo x ancho x alto en metros (ej. 2 x 1 x 0.5)";
+            case 1 -> "Para unidad metro (MTR) indica la longitud en metros (ej. 4.5)";
+            case 2 -> "Para unidad metro cuadrado (MTK) indica el área (ej. 5) o largo x alto en metros (ej. 3.20 x 0.90)";
+            case 3 -> "Para unidad metro cúbico (MTQ) indica el volumen (ej. 2) o largo x ancho x alto en metros (ej. 2 x 1 x 0.5)";
             default -> "Las medidas son opcionales para esta unidad";
         };
     }
 
     /** Cantidad de medidas que se multiplican: 0 si la unidad no se cobra por medida. */
     private static int dimensiones(String unidad) {
-        String u = normalizar(unidad);
-        if (LINEALES.contains(u)) return 1;
-        if (u.equals("M2")) return 2;
-        if (u.equals("M3")) return 3;
-        return 0;
-    }
-
-    private static String normalizar(String unidad) {
-        return unidad == null ? "" : unidad.trim().toUpperCase().replace("²", "2").replace("³", "3");
+        return switch (UnidadMedida.normalizar(unidad)) {
+            case UnidadMedida.METRO -> 1;
+            case UnidadMedida.METRO_CUADRADO -> 2;
+            case UnidadMedida.METRO_CUBICO -> 3;
+            default -> 0;
+        };
     }
 
     /** Extrae los números del texto (acepta coma o punto decimal) ignorando "m", "x", "por", etc. */

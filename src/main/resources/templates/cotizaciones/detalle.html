@@ -43,7 +43,7 @@
                     <td th:text="${d.producto.descripcion}">desc</td>
                     <td><span th:text="${d.medidas}">med</span>
                         <div class="text-secondary small" th:if="${d.porMedida and d.metrado != null}"
-                             th:text="'= ' + ${d.metrado} + ' ' + ${#strings.toLowerCase(d.producto.unidad)} + ' por unidad'">= 2.88 m2</div></td>
+                             th:text="'= ' + ${d.metrado} + ' ' + ${d.producto.unidadSimbolo} + ' por unidad'">= 2.88 m2</div></td>
                     <td class="num" th:text="${#numbers.formatDecimal(d.precio, 1, 'COMMA', 2, 'POINT')}">0</td>
                     <td class="num" th:if="${cot.tieneDescuentoPorItem}"
                         th:text="${d.descuento.signum() > 0} ? ${#numbers.formatDecimal(d.descuento, 1, 'COMMA', 2, 'POINT')} + ' %' : '—'">0 %</td>

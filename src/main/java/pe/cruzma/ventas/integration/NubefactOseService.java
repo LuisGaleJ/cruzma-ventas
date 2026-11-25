@@ -146,7 +146,10 @@ public class NubefactOseService implements ServicioFacturacionOSE {
             BigDecimal igvItem = importe.subtract(subtotal);
             Producto p = d.getProducto();
             Map<String, Object> item = new LinkedHashMap<>();
-            item.put("unidad_de_medida", p.getTipo() == TipoProducto.SERVICIO ? "ZZ" : "NIU");
+            // Código de la Tabla 6 de SUNAT del producto; si es una unidad antigua sin equivalencia, NIU o ZZ según el tipo
+            String unidad = UnidadMedida.normalizar(p.getUnidad());
+            if (!UnidadMedida.existe(unidad)) unidad = p.getTipo() == TipoProducto.SERVICIO ? UnidadMedida.SERVICIO : UnidadMedida.UNIDAD;
+            item.put("unidad_de_medida", unidad);
             item.put("codigo", p.getCodigo());
             item.put("descripcion", p.getDescripcion());
             item.put("cantidad", cantidad);
