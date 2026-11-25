@@ -8,12 +8,30 @@ import java.math.RoundingMode;
  *
  * @param etiqueta día, cliente o producto que agrupa la fila
  * @param cantidad número de ventas o unidades
- * @param monto    importe total en soles
+ * @param monto    importe cobrado en soles (después de descuentos)
+ * @param montoOriginal importe antes de descuentos, en soles
  *
  * @author Luis Osmin Galecio Jaramillo
  * @since 0.1.0
  */
-public record FilaReporte(String etiqueta, long cantidad, BigDecimal monto) {
+public record FilaReporte(String etiqueta, long cantidad, BigDecimal monto, BigDecimal montoOriginal) {
+
+    /**
+     * Fila sin descuentos: el monto original es igual al cobrado.
+     *
+     * @param etiqueta día, cliente o producto
+     * @param cantidad número de ventas o unidades
+     * @param monto    importe en soles
+     */
+    public FilaReporte(String etiqueta, long cantidad, BigDecimal monto) {
+        this(etiqueta, cantidad, monto, monto);
+    }
+
+    /** {@return descuento concedido en soles: monto original menos monto cobrado} */
+    public BigDecimal descuento() {
+        return montoOriginal.subtract(monto);
+    }
+
     /**
      * Porcentaje de esta fila sobre el total, para dibujar la barra del reporte.
      *

@@ -169,6 +169,17 @@ public class Venta {
     public LocalDateTime getFecha() { return fecha; }
     /** {@return importe total con IGV} */
     public BigDecimal getTotal() { return total; }
+
+    /**
+     * Monto original de la venta: lo que costaba la cotización sin ningún descuento
+     * (precio x cantidad x metrado de cada ítem). Sin cotización, es el total.
+     *
+     * @return monto antes de descuentos, en soles
+     */
+    public BigDecimal getMontoOriginal() { return cotizacion == null ? total : cotizacion.getBruto(); }
+
+    /** {@return descuento total concedido en soles (por ítem y global): monto original menos total cobrado} */
+    public BigDecimal getMontoDescuento() { return getMontoOriginal().subtract(total); }
     /** {@return saldo pendiente de cobro} */
     public BigDecimal getSaldo() { return saldo; }
     /** {@return estado actual} */

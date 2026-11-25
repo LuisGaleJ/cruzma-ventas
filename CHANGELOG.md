@@ -13,6 +13,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 - Nubefact recibe la unidad del producto (`unidad_de_medida`) en lugar de solo `NIU`/`ZZ`.
 - `db/migracion-004-unidades-sunat.sql`: convierte las unidades existentes (UND → NIU, M2 → MTK, SERV → ZZ...).
   Pruebas: `UnidadMedidaTest`, `MetradoTest`, `ProductoServiceTest`.
+- **Reporte Excel con descuentos** (observación del docente): las hojas Ventas, Clientes, Productos y Por día
+  muestran **monto original** (sin descuentos), **descuento** en soles y **total con descuento**. Nueva hoja
+  **Detalle por producto** con cada ítem vendido: medidas, precio, monto original, % de descuento del ítem y global,
+  descuento y total. Las hojas terminan con una fila TOTAL; el Resumen incluye monto original y descuentos del
+  período; el CSV agrega las columnas MontoOriginal y Descuento. Prueba: `ExportadoresTest`.
 
 ### Agregado
 - Celular: los ítems de la cotización se muestran como tarjetas con sus campos rotulados (producto, cantidad,

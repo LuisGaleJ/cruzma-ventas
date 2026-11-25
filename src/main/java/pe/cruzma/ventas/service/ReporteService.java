@@ -3,8 +3,11 @@ package pe.cruzma.ventas.service;
 import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableList;
 import pe.cruzma.ventas.dto.DatosReporte;
+import pe.cruzma.ventas.dto.DetalleReporte;
 import pe.cruzma.ventas.dto.FilaReporte;
 import pe.cruzma.ventas.dto.ResumenPanel;
+import pe.cruzma.ventas.model.Cotizacion;
+import pe.cruzma.ventas.model.DetalleCotizacion;
 import pe.cruzma.ventas.model.DetalleVenta;
 import pe.cruzma.ventas.model.EstadoCotizacion;
 import pe.cruzma.ventas.model.EstadoVenta;
@@ -83,9 +86,10 @@ public class ReporteService {
         BigDecimal total = lista.stream().map(Venta::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal ticket = lista.isEmpty() ? BigDecimal.ZERO
                 : total.divide(BigDecimal.valueOf(lista.size()), 2, RoundingMode.HALF_UP);
+        List<DetalleReporte> detalle = ImmutableList.copyOf(detalle(lista));
         return new DatosReporte(desde, hasta, lista, total, ticket,
                 ImmutableList.copyOf(porDia(lista)), ImmutableList.copyOf(porCliente(lista)),
-                ImmutableList.copyOf(porProducto(lista)), ImmutableList.copyOf(cuentasPorCobrar()));
+                ImmutableList.copyOf(porProducto(detalle)), ImmutableList.copyOf(cuentasPorCobrar()), detalle);
     }
 
     /**
@@ -109,25 +113,55 @@ public class ReporteService {
     }
 
     /**
-     * R2 Ranking de productos por monto vendido (RF12).
+     * R2 Ranking de productos por monto vendido (RF12), con monto original y descuento.
      *
-     * @param lista ventas del período
-     * @return una fila por producto con unidades y monto, de mayor a menor
+     * @param detalle ítems vendidos del período (ver {@link #detalle(List)})
+     * @return una fila por producto con unidades, monto cobrado y monto original, de mayor a menor
      */
-    public List<FilaReporte> porProducto(List<Venta> lista) {
+    public List<FilaReporte> porProducto(List<DetalleReporte> detalle) {
         Map<String, BigDecimal> monto = new HashMap<>();
+        Map<String, BigDecimal> original = new HashMap<>();
         Map<String, Long> unidades = new HashMap<>();
-        for (Venta v : lista) {
-            for (DetalleVenta d : v.getDetalles()) {
-                String k = d.getProducto().getDescripcion();
-                monto.merge(k, d.getSubtotal(), BigDecimal::add);
-                unidades.merge(k, (long) d.getCantidad(), Long::sum);
-            }
+        for (DetalleReporte d : detalle) {
+            monto.merge(d.producto(), d.montoCobrado(), BigDecimal::add);
+            original.merge(d.producto(), d.montoOriginal(), BigDecimal::add);
+            unidades.merge(d.producto(), (long) d.cantidad(), Long::sum);
         }
         return monto.entrySet().stream()
-                .map(e -> new FilaReporte(e.getKey(), unidades.get(e.getKey()), e.getValue()))
+                .map(e -> new FilaReporte(e.getKey(), unidades.get(e.getKey()), e.getValue(), original.get(e.getKey())))
                 .sorted(Comparator.comparing(FilaReporte::monto).reversed())
                 .toList();
+    }
+
+    /**
+     * Ítems vendidos en el período con su monto original, el descuento y lo cobrado.
+     * <p>
+     * El monto original sale de la cotización (precio x cantidad x metrado) y lo cobrado del ítem de la venta,
+     * que ya incluye su parte del descuento global. Los ítems de la venta están en el mismo orden que los de la
+     * cotización, porque se copian de ella al convertirla.
+     *
+     * @param lista ventas del período
+     * @return una fila por ítem vendido, en orden cronológico
+     */
+    public List<DetalleReporte> detalle(List<Venta> lista) {
+        List<DetalleReporte> filas = new ArrayList<>();
+        for (Venta v : lista) {
+            Cotizacion cot = v.getCotizacion();
+            List<DetalleCotizacion> itemsCot = cot == null ? List.of() : cot.getDetalles();
+            List<DetalleVenta> itemsVenta = v.getDetalles();
+            for (int i = 0; i < itemsVenta.size(); i++) {
+                DetalleVenta d = itemsVenta.get(i);
+                DetalleCotizacion dc = i < itemsCot.size() ? itemsCot.get(i) : null;
+                BigDecimal original = dc == null ? d.getSubtotal() : dc.getBruto();
+                filas.add(new DetalleReporte(v.getFecha().toLocalDate(), v.getId(), cot == null ? "" : cot.getNumero(),
+                        v.getCliente().getRazonSocial(), d.getProducto().getDescripcion(), d.getProducto().getUnidadSunat(),
+                        d.getCantidad(), dc == null || dc.getMedidas() == null ? "" : dc.getMedidas(), d.getPrecio(),
+                        original, dc == null ? BigDecimal.ZERO : dc.getDescuento(),
+                        cot == null ? BigDecimal.ZERO : cot.getDescuento(),
+                        original.subtract(d.getSubtotal()), d.getSubtotal()));
+            }
+        }
+        return filas;
     }
 
     /** {@return R3 Cuentas por cobrar: ventas con saldo pendiente (RF13)} */
@@ -143,14 +177,16 @@ public class ReporteService {
      */
     private List<FilaReporte> agrupar(List<Venta> lista, Function<Venta, String> clave, boolean ordenarPorMonto) {
         Map<String, BigDecimal> monto = new LinkedHashMap<>();
+        Map<String, BigDecimal> original = new HashMap<>();
         Map<String, Long> cantidad = new HashMap<>();
         for (Venta v : lista) {
             String k = clave.apply(v);
             monto.merge(k, v.getTotal(), BigDecimal::add);
+            original.merge(k, v.getMontoOriginal(), BigDecimal::add);
             cantidad.merge(k, 1L, Long::sum);
         }
         List<FilaReporte> filas = new ArrayList<>(monto.entrySet().stream()
-                .map(e -> new FilaReporte(e.getKey(), cantidad.get(e.getKey()), e.getValue())).toList());
+                .map(e -> new FilaReporte(e.getKey(), cantidad.get(e.getKey()), e.getValue(), original.get(e.getKey()))).toList());
         if (ordenarPorMonto) filas.sort(Comparator.comparing(FilaReporte::monto).reversed());
         return filas;
     }

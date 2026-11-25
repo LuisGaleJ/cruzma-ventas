@@ -36,13 +36,15 @@ public class CsvExportador implements ExportadorReporte {
     @Override
     public byte[] exportar(DatosReporte datos) {
         StringBuilder sb = new StringBuilder("﻿"); // BOM: Excel reconoce las tildes
-        sb.append("Fecha,Venta,Cliente,Documento,Total,Pagado,Saldo,Estado\r\n");
+        sb.append("Fecha,Venta,Cliente,Documento,MontoOriginal,Descuento,TotalConDescuento,Pagado,Saldo,Estado\r\n");
         for (Venta v : datos.ventas()) {
             StringJoiner fila = new StringJoiner(",");
             fila.add(v.getFecha().toLocalDate().toString())
                 .add(String.valueOf(v.getId()))
                 .add(campo(v.getCliente().getRazonSocial()))
                 .add(campo(v.getCliente().getNumDoc()))
+                .add(v.getMontoOriginal().toPlainString())
+                .add(v.getMontoDescuento().toPlainString())
                 .add(v.getTotal().toPlainString())
                 .add(v.getPagado().toPlainString())
                 .add(v.getSaldo().toPlainString())
