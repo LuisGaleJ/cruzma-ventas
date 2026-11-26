@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Corregido
+- Reporte: el **monto original** se calculaba con la unidad *actual* del producto; si la unidad cambió después de
+  cotizar (por ejemplo, un servicio cotizado por medida que la migración 004 pasó a ZZ) salía menor que lo cobrado y
+  el descuento quedaba negativo (COT-2026-0009: original 100.00 y descuento −800.00). Ahora se obtiene de lo
+  guardado en la cotización (`DetalleCotizacion.getBruto`). Prueba: `DetalleCotizacionTest`.
+
 ### Cambiado (observación del docente)
 - **Unidad de medida con la Tabla 6 de SUNAT** (Anexo 3 del PLE): el producto guarda el código oficial (`NIU`, `MTR`,
   `MTK`, `MTQ`, `KGM`, `ZZ`...) elegido de una **lista desplegable**, sin texto libre. Solo se ofrecen las 17 unidades
