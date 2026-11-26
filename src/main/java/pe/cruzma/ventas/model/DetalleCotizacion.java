@@ -134,11 +134,45 @@ public class DetalleCotizacion {
     }
     /** {@return descuento del ítem en porcentaje} */
     public BigDecimal getDescuento() { return descuento; }
-    /** {@return importe del ítem antes de su descuento (precio por cantidad por metrado)} */
+    /**
+     * Importe del ítem antes de su descuento (precio x cantidad x metrado), obtenido de lo que quedó guardado.
+     * <p>
+     * No se recalcula con la unidad actual del producto, porque la unidad puede haber cambiado después de cotizar
+     * (por ejemplo, un servicio que se cobraba por metro cuadrado y ahora usa ZZ): eso daría un monto original
+     * menor que lo cobrado. Sin descuento, el monto original es el subtotal guardado. Con descuento, se busca el
+     * metrado con el que se cotizó (el de la unidad actual, 1, o el de las medidas como metro, metro cuadrado o
+     * metro cúbico) cuyo importe con descuento coincide exactamente con el subtotal guardado; si ninguno coincide,
+     * se reconstruye a partir del subtotal y el porcentaje.
+     *
+     * @return monto original del ítem en soles
+     * @since 0.7.0
+     */
     public BigDecimal getBruto() {
-        BigDecimal m = getMetrado();
-        return m == null ? subtotal
-                : precio.multiply(BigDecimal.valueOf(cantidad)).multiply(m).setScale(2, java.math.RoundingMode.HALF_UP);
+        if (descuento == null || descuento.signum() == 0) return subtotal;
+        BigDecimal base = precio.multiply(BigDecimal.valueOf(cantidad));
+        for (BigDecimal m : metradosPosibles()) {
+            BigDecimal bruto = base.multiply(m).setScale(2, java.math.RoundingMode.HALF_UP);
+            if (Descuento.aplicar(bruto, descuento).compareTo(subtotal) == 0) return bruto;
+        }
+        BigDecimal cien = BigDecimal.valueOf(100);
+        if (descuento.compareTo(cien) >= 0) return subtotal;
+        return subtotal.multiply(cien).divide(cien.subtract(descuento), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    /** Metrados con los que se pudo cotizar el ítem: el de la unidad actual, 1 y el de las medidas en m, m2 y m3. */
+    private java.util.List<BigDecimal> metradosPosibles() {
+        java.util.List<BigDecimal> posibles = new java.util.ArrayList<>();
+        BigDecimal actual = getMetrado();
+        if (actual != null) posibles.add(actual);
+        posibles.add(BigDecimal.ONE);
+        for (String unidad : java.util.List.of(UnidadMedida.METRO, UnidadMedida.METRO_CUADRADO, UnidadMedida.METRO_CUBICO)) {
+            try {
+                posibles.add(Metrado.calcular(unidad, medidas));
+            } catch (IllegalArgumentException e) {
+                // las medidas no sirven para esa unidad: se descarta
+            }
+        }
+        return posibles;
     }
     /** {@return subtotal con el descuento del ítem (precio por cantidad por metrado, menos descuento)} */
     public BigDecimal getSubtotal() { return subtotal; }
