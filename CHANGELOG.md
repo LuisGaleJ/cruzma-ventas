@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Agregado
+- Botones **Excel**, **CSV** e **Imprimir** en las tablas de Clientes, Productos, Usuarios, Cotizaciones, Ventas y
+  cobros y Comprobantes (las tres últimas pasan a DataTables con búsqueda, orden por fecha y vista para celular) (extensión Buttons de
+  DataTables con JSZip). Exportan las filas filtradas con todas sus columnas, menos la de acciones; el CSV marca
+  como texto los valores que parecen fórmulas.
+
 ### Corregido
 - Reporte: el **monto original** se calculaba con la unidad *actual* del producto; si la unidad cambió después de
   cotizar (por ejemplo, un servicio cotizado por medida que la migración 004 pasó a ZZ) salía menor que lo cobrado y
