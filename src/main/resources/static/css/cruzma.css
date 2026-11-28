@@ -173,3 +173,18 @@ div.dt-container .page-link { color: var(--pavonado); }
   .filtro-dashboard { padding: 12px; }
   .filtro-dashboard .rango .form-control { flex: 1 1 130px; font-size: 16px; } /* 16px evita el zoom en iPhone */
 }
+
+/* Alertas de cotizaciones por vencer */
+.contador-alerta { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px;
+  background: #b7791f; color: #fff; font-size: 12px; font-weight: 600; line-height: 20px; text-align: center; }
+.alerta-vencimiento { background: #fff8e6; border: 1px solid #f0c36d; border-left: 4px solid #b7791f;
+  border-radius: var(--radio); padding: 14px 20px; margin-bottom: 16px; }
+.alerta-vencimiento h2 { font-size: 15px; font-weight: 600; color: #7a4f0a; margin: 0 0 8px; }
+.alerta-vencimiento .table { margin: 0; --bs-table-bg: transparent; }
+.alerta-vencimiento .table td { vertical-align: middle; }
+.fila-por-vencer > td { background: #fff8e6 !important; }
+.fila-vencida > td { color: var(--acero-500); }
+.aviso-vence { font-size: 12px; color: var(--acero-500); margin-top: 2px; }
+.aviso-vence.urgente { color: #b7791f; font-weight: 600; }
+.btn-whatsapp { display: inline-flex; align-items: center; gap: 6px; background: #1f8f4e; border-color: #1f8f4e; color: #fff; }
+.btn-whatsapp:hover, .btn-whatsapp:focus { background: #17723e; border-color: #17723e; color: #fff; }

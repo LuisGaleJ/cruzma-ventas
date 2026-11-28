@@ -70,6 +70,7 @@ Archivos: `static/manifest.json`, `static/sw.js`, `static/js/app.js`, `static/of
 |----------|----------|
 | `CRUZMA_PUBLICO=true` | Cookie de sesión solo por HTTPS; no arranca con la contraseña de demostración |
 | `ADMIN_PASSWORD` | Contraseña inicial de los usuarios (obligatoria en internet, 10+ caracteres) |
+| `COTIZACION_DIAS_AVISO` | Días de anticipación del aviso de cotizaciones por vencer (por defecto 3) |
 | `DEMO_DATOS` | `true` carga usuarios vendedor/caja, clientes y productos de ejemplo; `false`, solo `admin` |
 | `PORT` / `SERVER_PORT` | Puerto que asigna la plataforma (por defecto 8080) |
 

@@ -2,6 +2,7 @@ package pe.cruzma.ventas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Punto de entrada del sistema de facturación y control de ventas de Grupo Cruzma.
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 0.1.0
  */
 @SpringBootApplication
+@EnableScheduling   // tareas diarias: vencimiento automático de cotizaciones (AlertaCotizacionService)
 public class CruzmaVentasApplication {
 
     /** Constructor usado por Spring. */
