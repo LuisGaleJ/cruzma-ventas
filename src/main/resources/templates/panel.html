@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Panel')}"></head>
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
 <body>
 <div class="app">
     <nav th:replace="~{fragments/layout :: menu}"></nav>
@@ -8,32 +8,52 @@
         <div th:replace="~{fragments/layout :: mensajes}"></div>
         <div class="encabezado">
             <div>
-                <h1>Panel</h1>
-                <p th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">fecha</p>
+                <h1>Dashboard</h1>
+                <p th:text="${etiquetaPeriodo}">Hoy · 28/11/2026</p>
             </div>
             <a sec:authorize="hasAnyRole('ADMIN','VENDEDOR')" th:href="@{/cotizaciones/nueva}" class="btn btn-principal">Nueva cotización</a>
         </div>
 
+        <!-- Filtro de fechas: accesos rápidos o rango libre -->
+        <section class="hoja filtro-dashboard" aria-label="Filtro de fechas">
+            <div class="periodos" role="group" aria-label="Períodos">
+                <a th:each="p : ${periodos}" th:href="@{/(periodo=${p})}" th:text="${p.etiqueta}"
+                   class="btn btn-sm" th:classappend="${p == periodo} ? 'btn-principal' : 'btn-outline-secondary'"
+                   th:attr="aria-current=${p == periodo} ? 'true' : null">Hoy</a>
+            </div>
+            <form th:action="@{/}" method="get" class="rango">
+                <label for="desde" class="form-label">Desde</label>
+                <input type="date" id="desde" name="desde" class="form-control form-control-sm" th:value="${desde}" required>
+                <label for="hasta" class="form-label">Hasta</label>
+                <input type="date" id="hasta" name="hasta" class="form-control form-control-sm" th:value="${hasta}" required>
+                <button type="submit" class="btn btn-sm btn-principal">Filtrar</button>
+            </form>
+        </section>
+
         <section class="indicadores" aria-label="Indicadores">
-            <div class="indicador saldo"><span>Saldo por cobrar</span>
+            <div class="indicador saldo"><span>Saldo por cobrar (a la fecha)</span>
                 <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.saldoPorCobrar, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
-            <div class="indicador"><span>Ventas de hoy</span>
-                <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.ventasHoy, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
-            <div class="indicador"><span>Ventas del mes</span>
-                <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.ventasMes, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
-            <div class="indicador"><span>Cotizaciones pendientes</span>
-                <strong th:text="${resumen.cotizacionesPendientes}">0</strong></div>
+            <div class="indicador"><span>Ventas del período</span>
+                <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.ventasPeriodo, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong>
+                <small th:text="${resumen.numeroVentas} + (${resumen.numeroVentas == 1} ? ' venta' : ' ventas') + ' · ticket S/ ' + ${#numbers.formatDecimal(resumen.ticketPromedio, 1, 'COMMA', 2, 'POINT')}">0 ventas</small></div>
+            <div class="indicador"><span>Cobrado en el período</span>
+                <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.cobradoPeriodo, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong>
+                <small>Pagos registrados</small></div>
+            <div class="indicador"><span>Cotizaciones del período</span>
+                <strong th:text="${resumen.cotizacionesPeriodo}">0</strong>
+                <small th:text="${resumen.cotizacionesPendientes} + ' por responder'">0 por responder</small></div>
         </section>
 
         <div class="row g-4">
             <div class="col-lg-7">
                 <section class="hoja">
-                    <h2>Últimas ventas</h2>
-                    <p th:if="${#lists.isEmpty(ultimasVentas)}" class="text-secondary m-0">Aún no hay ventas. Convierte una cotización aceptada para registrar la primera.</p>
-                    <table th:unless="${#lists.isEmpty(ultimasVentas)}" class="table">
-                        <thead><tr><th>Cliente</th><th class="num">Total</th><th class="num">Saldo</th><th>Estado</th></tr></thead>
+                    <h2>Ventas del período</h2>
+                    <p th:if="${#lists.isEmpty(ventasPeriodo)}" class="text-secondary m-0">No hay ventas en este período.</p>
+                    <table th:unless="${#lists.isEmpty(ventasPeriodo)}" class="table">
+                        <thead><tr><th>Fecha</th><th>Cliente</th><th class="num">Total</th><th class="num">Saldo</th><th>Estado</th></tr></thead>
                         <tbody>
-                        <tr th:each="v : ${ultimasVentas}">
+                        <tr th:each="v : ${ventasPeriodo}">
+                            <td th:text="${#temporals.format(v.fecha, 'dd/MM')}">28/11</td>
                             <td><a th:href="@{/ventas/{id}(id=${v.id})}" th:text="${v.cliente.razonSocial}">cliente</a></td>
                             <td class="num" th:text="${#numbers.formatDecimal(v.total, 1, 'COMMA', 2, 'POINT')}">0</td>
                             <td class="num" th:text="${#numbers.formatDecimal(v.saldo, 1, 'COMMA', 2, 'POINT')}">0</td>
@@ -41,6 +61,8 @@
                         </tr>
                         </tbody>
                     </table>
+                    <p th:if="${resumen.numeroVentas > 10}" class="text-secondary small mt-2 mb-0">
+                        Se muestran las 10 más recientes. <a th:href="@{/reportes(desde=${desde},hasta=${hasta})}">Ver todas en Reportes</a></p>
                 </section>
             </div>
             <div class="col-lg-5">

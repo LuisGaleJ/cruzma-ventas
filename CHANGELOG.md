@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Cambiado
+- **Panel → Dashboard** con **filtro de fechas**: accesos rápidos (Hoy, Ayer, Esta semana, Este mes, Mes anterior,
+  Este año) o rango libre Desde/Hasta. Indicadores del período: ventas (con número de ventas y ticket promedio),
+  cobrado (pagos registrados) y cotizaciones emitidas; el saldo por cobrar y las cotizaciones por responder se
+  muestran a la fecha. La tabla muestra las ventas del período (10 más recientes, con enlace a Reportes).
+  Pruebas: `PeriodoTest`, `PanelControllerTest`.
+
 ### Agregado
 - Botones **Excel**, **CSV** e **Imprimir** en las tablas de Clientes, Productos, Usuarios, Cotizaciones, Ventas y
   cobros y Comprobantes (las tres últimas pasan a DataTables con búsqueda, orden por fecha y vista para celular) (extensión Buttons de

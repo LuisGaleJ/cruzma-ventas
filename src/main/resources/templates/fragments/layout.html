@@ -51,7 +51,7 @@
         </button>
     </div>
     <div class="menu-enlaces" id="menuEnlaces">
-    <a th:href="@{/}" th:classappend="${uri == '/'} ? 'activo'">Panel</a>
+    <a th:href="@{/}" th:classappend="${uri == '/'} ? 'activo'">Dashboard</a>
     <a sec:authorize="hasAnyRole('ADMIN','VENDEDOR')" th:href="@{/cotizaciones}"
        th:classappend="${#strings.startsWith(uri, '/cotizaciones')} ? 'activo'">Cotizaciones</a>
     <a th:href="@{/ventas}" th:classappend="${#strings.startsWith(uri, '/ventas')} ? 'activo'">Ventas y cobros</a>

@@ -101,7 +101,7 @@ Flujo de una petición: `Controller` recibe el formulario → `Service` aplica l
 | Pantalla | Ruta | Método | Roles | Requisitos |
 |----------|------|--------|-------|------------|
 | P1 Inicio de sesión | `/login` | GET/POST | Todos | RF01 |
-| P2 Panel | `/` | GET | Todos | RF12, RF13 |
+| P2 Dashboard (filtro por fechas) | `/?periodo=HOY` o `/?desde=…&hasta=…` | GET | Todos | RF12, RF13 |
 | P3 Usuarios | `/usuarios`, `/usuarios/{id}/estado` | GET/POST | ADMIN | RF02 |
 | P4 Clientes | `/clientes`, `/clientes/guardar` | GET/POST | Todos | RF03 |
 | P5 Productos | `/productos`, `/productos/guardar` | GET/POST | Consulta todos, edita ADMIN | RF04 |

@@ -47,17 +47,34 @@ public class ReporteService {
     }
 
     /**
-     * Indicadores del panel principal (P2).
+     * Indicadores del Dashboard (P2) para un rango de fechas.
      *
-     * @return ventas de hoy y del mes, cotizaciones pendientes y saldo por cobrar
+     * @param desde primer día, inclusive
+     * @param hasta último día, inclusive
+     * @return ventas, cobros y cotizaciones del período; saldo por cobrar y cotizaciones pendientes a la fecha
+     * @throws IllegalArgumentException si {@code desde} es posterior a {@code hasta}
      */
-    public ResumenPanel resumen() {
-        LocalDate hoy = LocalDate.now();
-        return new ResumenPanel(
-                ventas.totalVendido(hoy.atStartOfDay(), hoy.atTime(LocalTime.MAX)),
-                ventas.totalVendido(hoy.withDayOfMonth(1).atStartOfDay(), hoy.atTime(LocalTime.MAX)),
-                cotizaciones.countByEstado(EstadoCotizacion.PENDIENTE),
-                ventas.saldoPorCobrar());
+    public ResumenPanel resumen(LocalDate desde, LocalDate hasta) {
+        checkArgument(!desde.isAfter(hasta), "La fecha inicial no puede ser posterior a la final");
+        List<Venta> lista = ventasDelPeriodo(desde, hasta);
+        BigDecimal total = lista.stream().map(Venta::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal ticket = lista.isEmpty() ? BigDecimal.ZERO
+                : total.divide(BigDecimal.valueOf(lista.size()), 2, RoundingMode.HALF_UP);
+        BigDecimal cobrado = ventas.findAllByOrderByFechaDesc().stream()
+                .filter(v -> v.getEstado() != EstadoVenta.ANULADA)
+                .flatMap(v -> v.getPagos().stream())
+                .filter(p -> enRango(p.getFecha().toLocalDate(), desde, hasta))
+                .map(p -> p.getMonto())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long cotizacionesPeriodo = cotizaciones.findAllByOrderByIdDesc().stream()
+                .filter(c -> c.getFecha() != null && enRango(c.getFecha(), desde, hasta))
+                .count();
+        return new ResumenPanel(desde, hasta, total, lista.size(), ticket, cobrado, cotizacionesPeriodo,
+                cotizaciones.countByEstado(EstadoCotizacion.PENDIENTE), ventas.saldoPorCobrar());
+    }
+
+    private static boolean enRango(LocalDate fecha, LocalDate desde, LocalDate hasta) {
+        return !fecha.isBefore(desde) && !fecha.isAfter(hasta);
     }
 
     /**

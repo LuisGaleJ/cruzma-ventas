@@ -6,7 +6,7 @@
 |--------|------|-------------|-------|-------|-----------|
 | GET/POST | `/login` | `LoginController.login` / Spring Security | `login` | Todos | RF01 |
 | POST | `/logout` | Spring Security | — | Autenticado | RF01 |
-| GET | `/` | `PanelController.panel` | `panel` | Autenticado | RF12, RF13 |
+| GET | `/` (`periodo` o `desde`/`hasta`) | `PanelController.panel` | `panel` (Dashboard) | Autenticado | RF12, RF13 |
 | GET | `/usuarios` | `UsuarioController.listar` | `usuarios/lista` | ADMIN | RF02 |
 | POST | `/usuarios` | `UsuarioController.crear` | redirección | ADMIN | RF02 |
 | POST | `/usuarios/{id}` | `UsuarioController.actualizar` (nombres, rol, contraseña opcional) | redirección | ADMIN | RF02 |
