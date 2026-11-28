@@ -9,15 +9,15 @@
         <div class="encabezado"><div><h1>Ventas y cobros</h1><p>Las ventas se crean al convertir una cotización aceptada.</p></div></div>
         <section class="hoja">
             <p th:if="${#lists.isEmpty(ventas)}" class="text-secondary m-0">Aún no hay ventas.</p>
-            <table th:unless="${#lists.isEmpty(ventas)}" class="table">
-                <thead><tr><th>N.º</th><th>Fecha</th><th>Cliente</th><th class="num">Total S/</th><th class="num">Saldo S/</th><th>Estado</th></tr></thead>
+            <table th:unless="${#lists.isEmpty(ventas)}" class="table" id="tablaVentas">
+                <thead><tr><th data-priority="2">N.º</th><th data-priority="5">Fecha</th><th data-priority="1">Cliente</th><th data-priority="4" class="num">Total S/</th><th data-priority="3" class="num">Saldo S/</th><th data-priority="6">Estado</th></tr></thead>
                 <tbody>
                 <tr th:each="v : ${ventas}">
-                    <td><a th:href="@{/ventas/{id}(id=${v.id})}" th:text="${v.id}">1</a></td>
-                    <td th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy HH:mm')}">fecha</td>
+                    <td th:data-order="${v.id}"><a th:href="@{/ventas/{id}(id=${v.id})}" th:text="${v.id}">1</a></td>
+                    <td th:data-order="${#temporals.format(v.fecha, 'yyyy-MM-dd HH:mm')}" th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy HH:mm')}">fecha</td>
                     <td th:text="${v.cliente.razonSocial}">cliente</td>
-                    <td class="num" th:text="${#numbers.formatDecimal(v.total, 1, 'COMMA', 2, 'POINT')}">0</td>
-                    <td class="num" th:text="${#numbers.formatDecimal(v.saldo, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:data-order="${v.total}" th:text="${#numbers.formatDecimal(v.total, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td class="num" th:data-order="${v.saldo}" th:text="${#numbers.formatDecimal(v.saldo, 1, 'COMMA', 2, 'POINT')}">0</td>
                     <td><span class="estado" th:classappend="'estado-' + ${v.estado}" th:text="${v.estado}">estado</span></td>
                 </tr>
                 </tbody>
@@ -25,5 +25,11 @@
         </section>
     </main>
 </div>
+<script th:inline="none">
+    // Búsqueda, orden y exportación (Excel, CSV, Imprimir); primero las ventas más recientes
+    document.addEventListener('DOMContentLoaded', function () {
+        cruzmaTabla('#tablaVentas', { order: [ [1, 'desc'] ] });
+    });
+</script>
 </body>
 </html>

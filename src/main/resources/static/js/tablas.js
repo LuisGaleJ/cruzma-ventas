@@ -5,6 +5,9 @@
  * En pantallas angostas (celular) la extensión Responsive oculta las columnas que no entran y las muestra
  * al tocar la fila. Qué columnas se quedan lo decide cada tabla con data-priority en su <th>
  * (1 = la más importante, se oculta al último).
+ * Con la extensión Buttons, cada tabla tiene botones Excel, CSV e Imprimir. Se exportan todas las filas que
+ * pasan el filtro de búsqueda y todas las columnas, incluso las ocultas en el celular, menos la de botones
+ * (clase "sin-orden").
  */
 (function () {
     'use strict';
@@ -22,6 +25,41 @@
         paginate: { first: '«', previous: '‹', next: '›', last: '»' },
         aria: { orderable: 'Ordenar por esta columna', orderableReverse: 'Invertir el orden' }
     };
+
+    /** Texto visible de la celda, en una sola línea (ej. «MTR» y «METRO» en dos renglones → «MTR METRO»). */
+    function textoCelda(data, fila, columna, nodo) {
+        var texto = nodo ? (nodo.innerText || nodo.textContent || '') : String(data == null ? '' : data);
+        return texto.replace(/\s+/g, ' ').trim();
+    }
+
+    /** Para CSV: un texto que empieza con = + - @ se marca con comilla para que Excel no lo ejecute como fórmula. */
+    function textoCsvSeguro(data, fila, columna, nodo) {
+        var texto = textoCelda(data, fila, columna, nodo);
+        return /^[=+\-@]/.test(texto) ? "'" + texto : texto;
+    }
+
+    /** Título del archivo: el encabezado de la pantalla (Clientes, Productos y servicios, Usuarios). */
+    function tituloPantalla() {
+        var h1 = document.querySelector('.contenido h1');
+        return h1 ? h1.textContent.trim() : document.title;
+    }
+
+    /** Botones de exportación; null si la extensión Buttons no se cargó (por ejemplo, CDN bloqueado). */
+    function botonesExportar() {
+        var dt = window.DataTable || (window.jQuery && window.jQuery.fn.dataTable);
+        if (!dt || !dt.Buttons) return null;
+        var hoy = new Date().toISOString().slice(0, 10);
+        var archivo = function () { return 'Cruzma - ' + tituloPantalla() + ' - ' + hoy; };
+        var columnas = ':not(.sin-orden)';
+        return [
+            { extend: 'excelHtml5', text: 'Excel', title: function () { return 'Grupo Cruzma - ' + tituloPantalla(); },
+              filename: archivo, exportOptions: { columns: columnas, format: { body: textoCelda } } },
+            { extend: 'csvHtml5', text: 'CSV', filename: archivo, bom: true,
+              exportOptions: { columns: columnas, format: { body: textoCsvSeguro } } },
+            { extend: 'print', text: 'Imprimir', title: function () { return 'Grupo Cruzma - ' + tituloPantalla(); },
+              exportOptions: { columns: columnas, format: { body: textoCelda } } }
+        ];
+    }
 
     /**
      * Convierte una tabla HTML en una DataTable.
@@ -45,6 +83,8 @@
             responsive: true,
             columnDefs: [{ targets: 'sin-orden', orderable: false, searchable: false }]
         };
+        var botones = botonesExportar();
+        if (botones) comunes.layout = { topStart: ['pageLength', { buttons: botones }] };
         var config = Object.assign(comunes, opciones || {});
         return typeof window.DataTable !== 'undefined' ? new window.DataTable(tabla, config) : jq(tabla).DataTable(config);
     };
