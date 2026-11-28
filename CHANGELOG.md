@@ -4,6 +4,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/) y versio
 
 ## [Sin publicar]
 
+### Agregado
+- **Alertas de cotizaciones por vencer** (pendientes que vencen en los próximos 3 días, configurable con
+  `COTIZACION_DIAS_AVISO`): aviso destacado en el Dashboard, contador junto a «Cotizaciones» en el menú, filas en
+  amarillo con «vence mañana / en N días» en la lista y aviso en el detalle de la cotización.
+- **Recordatorio por WhatsApp**: botón que abre WhatsApp con el mensaje listo para el celular del cliente
+  (enlace `wa.me`, sin API ni costo). Solo aparece si el cliente tiene un celular peruano registrado.
+- **Vencimiento automático**: cada día a las 00:05 (hora de Lima) las cotizaciones pendientes cuya fecha pasó se
+  marcan como VENCIDA (`AlertaCotizacionService`, `@Scheduled`). Pruebas: `CotizacionVencimientoTest`, `WhatsAppTest`.
+
 ### Cambiado
 - **Panel → Dashboard** con **filtro de fechas**: accesos rápidos (Hoy, Ayer, Esta semana, Este mes, Mes anterior,
   Este año) o rango libre Desde/Hasta. Indicadores del período: ventas (con número de ventas y ticket promedio),

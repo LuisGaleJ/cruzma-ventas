@@ -6,6 +6,8 @@ import org.hibernate.envers.NotAudited;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,6 +111,48 @@ public class Cotizacion {
      */
     public boolean estaVencida() {
         return estado == EstadoCotizacion.PENDIENTE && LocalDate.now().isAfter(fechaVencimiento);
+    }
+
+    /** {@return días que faltan para la fecha de vencimiento (0 = vence hoy; negativo = ya venció)} */
+    public long getDiasParaVencer() {
+        return ChronoUnit.DAYS.between(LocalDate.now(), fechaVencimiento);
+    }
+
+    /**
+     * Indica si la cotización está pendiente y vence dentro de los próximos días.
+     *
+     * @param diasAviso con cuántos días de anticipación se avisa
+     * @return {@code true} si sigue pendiente y vence entre hoy y {@code diasAviso} días
+     * @since 0.7.0
+     */
+    public boolean porVencer(int diasAviso) {
+        long dias = getDiasParaVencer();
+        return estado == EstadoCotizacion.PENDIENTE && dias >= 0 && dias <= diasAviso;
+    }
+
+    /** {@return texto del vencimiento: «vence hoy», «vence mañana», «vence en 3 días» o «venció hace 2 días»} */
+    public String getTextoVencimiento() {
+        long dias = getDiasParaVencer();
+        if (dias == 0) return "vence hoy";
+        if (dias == 1) return "vence mañana";
+        if (dias > 1) return "vence en " + dias + " días";
+        return dias == -1 ? "venció ayer" : "venció hace " + (-dias) + " días";
+    }
+
+    /**
+     * Enlace de WhatsApp para recordarle al cliente que su cotización está por vencer.
+     *
+     * @return enlace {@code wa.me} con el mensaje listo, o {@code null} si el cliente no tiene celular registrado
+     * @since 0.7.0
+     */
+    public String getEnlaceWhatsApp() {
+        if (cliente == null) return null;
+        String fecha = fechaVencimiento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String mensaje = "Hola " + cliente.getRazonSocial() + ", le saluda Grupo Cruzma. Le recordamos que su cotización "
+                + numero + " por S/ " + String.format(java.util.Locale.US, "%,.2f", total)
+                + (getDiasParaVencer() < 0 ? " venció el " : " vence el ") + fecha
+                + ". ¿Desea confirmarla o que le enviemos una actualizada? Quedamos atentos.";
+        return pe.cruzma.ventas.util.WhatsApp.enlace(cliente.getTelefono(), mensaje);
     }
 
     /** Crea una cotización vacía en estado {@code PENDIENTE}. */

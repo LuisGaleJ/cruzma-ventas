@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import pe.cruzma.ventas.dto.Periodo;
 import pe.cruzma.ventas.model.EstadoCotizacion;
 import pe.cruzma.ventas.model.Venta;
+import pe.cruzma.ventas.service.AlertaCotizacionService;
 import pe.cruzma.ventas.service.CotizacionService;
 import pe.cruzma.ventas.service.ReporteService;
 
@@ -24,16 +25,19 @@ public class PanelController {
 
     private final ReporteService reportes;
     private final CotizacionService cotizaciones;
+    private final AlertaCotizacionService alertas;
 
     /**
      * Crea la instancia con sus dependencias (inyección por constructor).
      *
      * @param reportes     servicio de reportes
      * @param cotizaciones servicio de cotizaciones
+     * @param alertas      alertas de cotizaciones por vencer
      */
-    public PanelController(ReporteService reportes, CotizacionService cotizaciones) {
+    public PanelController(ReporteService reportes, CotizacionService cotizaciones, AlertaCotizacionService alertas) {
         this.reportes = reportes;
         this.cotizaciones = cotizaciones;
+        this.alertas = alertas;
     }
 
     /**
@@ -72,6 +76,7 @@ public class PanelController {
         List<Venta> ventas = new ArrayList<>(reportes.ventasDelPeriodo(desde, hasta));
         Collections.reverse(ventas);                                  // primero las más recientes (Java 17: sin reversed())
         model.addAttribute("ventasPeriodo", ventas.stream().limit(10).toList());
+        model.addAttribute("porVencer", alertas.porVencer());
         model.addAttribute("pendientes", cotizaciones.listar().stream()
                 .filter(c -> c.getEstado() == EstadoCotizacion.PENDIENTE).limit(5).toList());
         return "panel";
