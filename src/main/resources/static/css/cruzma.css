@@ -159,3 +159,17 @@ div.dt-container .page-link { color: var(--pavonado); }
 /* Botones de exportación de DataTables (Excel, CSV, Imprimir) junto a «Mostrar N registros» */
 .dt-layout-start { flex-wrap: wrap; gap: 8px 12px; }
 .dt-buttons .btn { font-size: 13.5px; padding: 4px 12px; }
+
+/* Dashboard: filtro de fechas (accesos rápidos + rango libre) y nota bajo cada indicador */
+.filtro-dashboard { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  padding: 14px 20px; margin-bottom: 16px; }
+.filtro-dashboard .periodos { display: flex; flex-wrap: wrap; gap: 6px; }
+.filtro-dashboard .rango { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; }
+.filtro-dashboard .rango .form-label { margin: 0; font-size: 13px; color: var(--acero-500); }
+.filtro-dashboard .rango .form-control { width: auto; }
+.indicador small { display: block; margin-top: 4px; font-size: 12.5px; color: var(--acero-500); }
+.indicador.saldo small { color: var(--acero-200); }
+@media (max-width: 900px) {
+  .filtro-dashboard { padding: 12px; }
+  .filtro-dashboard .rango .form-control { flex: 1 1 130px; font-size: 16px; } /* 16px evita el zoom en iPhone */
+}
